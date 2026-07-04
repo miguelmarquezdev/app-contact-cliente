@@ -5,6 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Happy Manager',
     short_name: 'Happy CRM',
     description: 'App para clientes, colaboradores, itinerarios y chat de turismo.',
+    id: '/',
     start_url: '/',
     scope: '/',
     display: 'standalone',
@@ -17,13 +18,13 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/icons/icon-192.png',
         sizes: '192x192',
         type: 'image/png',
-        purpose: 'maskable'
+        purpose: 'any maskable'
       },
       {
         src: '/icons/icon-512.png',
         sizes: '512x512',
         type: 'image/png',
-        purpose: 'maskable'
+        purpose: 'any maskable'
       }
     ]
   }

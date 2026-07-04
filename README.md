@@ -206,3 +206,13 @@ Esta versión incluye soporte PWA para poder instalar Happy Manager en el celula
 4. Confirma el nombre Happy Manager.
 
 Nota: Para instalarla como app real, debe estar publicada en HTTPS, por ejemplo en Vercel. En local se puede probar con localhost, pero el uso normal en celular será desde la URL publicada.
+
+
+## Nota v24 - Instalación real en celular y computadora
+
+Se mejoró el instalador PWA para que no redirija como simple enlace.
+
+- En Android/Chrome y computadora Chrome/Edge usa el prompt nativo de instalación cuando el navegador lo permite.
+- En iPhone muestra instrucciones claras: debe abrirse en Safari y usar Compartir → Agregar a pantalla de inicio.
+- Para que el botón diga “Instalar app” y no “Agregar acceso directo”, la app debe estar publicada en HTTPS y el Service Worker debe estar activo.
+- En localhost puede probarse en computadora, pero en celular debe usarse una URL publicada con HTTPS, por ejemplo Vercel.

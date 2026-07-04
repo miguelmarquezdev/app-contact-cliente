@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v23'
+const CACHE_VERSION = 'v24'
 const SHELL_CACHE = `happy-manager-shell-${CACHE_VERSION}`
 const PAGE_CACHE = `happy-manager-pages-${CACHE_VERSION}`
 const ASSET_CACHE = `happy-manager-assets-${CACHE_VERSION}`
