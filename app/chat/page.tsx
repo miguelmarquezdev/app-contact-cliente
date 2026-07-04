@@ -21,7 +21,7 @@ export default async function ChatPage() {
 
   return (
     <PageShell>
-      <div className="mb-6">
+      <div className="mb-6 hidden md:block">
         <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Comunicación</p>
         <h1 className="text-3xl font-black text-white">Chat</h1>
         <p className="mt-2 text-sm text-slate-500">Selecciona el colaborador, cliente o usuario del equipo y conversa en tiempo real.</p>

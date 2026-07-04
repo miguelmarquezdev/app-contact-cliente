@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { LayoutDashboard, Users, Map, FileText, MessageCircle, Route, UserCog, User, ClipboardList, BriefcaseBusiness } from 'lucide-react'
+import { LogoutButton } from './logout-button'
 import { createClient } from '@/lib/supabase-server'
 
 const adminItems = [
@@ -47,7 +48,7 @@ export async function Sidebar() {
 
   return (
     <>
-      <aside className="hidden min-h-screen w-72 border-r border-[#1e293b] bg-[#08111f]/95 p-6 shadow-2xl shadow-black/20 backdrop-blur lg:block">
+      <aside className="hidden min-h-screen w-72 border-r border-[#1e293b] bg-[#08111f]/95 p-6 shadow-2xl shadow-black/20 backdrop-blur lg:flex lg:flex-col">
         <div className="mb-8 rounded-3xl border border-[#1e293b] bg-[#0b1220] p-5">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30">
             {icon}
@@ -56,7 +57,7 @@ export async function Sidebar() {
           <h1 className="mt-1 text-2xl font-black text-white">Happy Manager</h1>
           {profile ? <p className="mt-2 truncate text-xs font-semibold text-slate-500">{profile.full_name || profile.email}</p> : null}
         </div>
-        <nav className="space-y-2">
+        <nav className="flex-1 space-y-2">
           {items.map((item) => {
             const Icon = item.icon
             return (
@@ -69,10 +70,13 @@ export async function Sidebar() {
             )
           })}
         </nav>
+        <div className="border-t border-slate-800 pt-4">
+          <LogoutButton variant="sidebar" />
+        </div>
       </aside>
 
       <div className="fixed inset-x-2 bottom-2 z-50 rounded-[1.7rem] border border-slate-800/90 bg-[#07111f]/95 p-2 shadow-2xl shadow-black/50 backdrop-blur-xl lg:hidden">
-        <nav className="grid grid-cols-4 gap-1">
+        <nav className="grid grid-cols-5 gap-1">
           {mobileItems.map((item) => {
             const Icon = item.icon
             return (
@@ -84,6 +88,7 @@ export async function Sidebar() {
               </Link>
             )
           })}
+          <LogoutButton variant="mobileNav" />
         </nav>
       </div>
     </>

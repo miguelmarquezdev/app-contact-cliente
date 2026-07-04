@@ -377,30 +377,30 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   }
 
   const ContactsList = (
-    <div className="flex h-full min-h-[72vh] flex-col overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950/80 shadow-2xl shadow-black/20 md:min-h-[700px]">
-      <div className="border-b border-slate-800 bg-slate-950/95 p-4 md:p-5">
+    <div className="flex h-[calc(100dvh-132px)] min-h-0 flex-col overflow-hidden rounded-[26px] border border-slate-800 bg-slate-950/90 shadow-2xl shadow-black/20 md:h-full md:min-h-[700px] md:rounded-[28px]">
+      <div className="shrink-0 border-b border-slate-800 bg-slate-950/95 p-3 md:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-400">Contactos</p>
-            <h2 className="mt-1 text-xl font-black text-white md:text-2xl">Mensajes</h2>
+            <h2 className="mt-1 text-lg font-black text-white md:text-2xl">Mensajes</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={requestNotifications}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-500/10 text-sky-300 transition hover:bg-sky-500/20"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/10 text-sky-300 transition hover:bg-sky-500/20 md:h-11 md:w-11"
               title={notificationPermission === 'granted' ? 'Notificaciones activas' : 'Activar notificaciones'}
               aria-label={notificationPermission === 'granted' ? 'Notificaciones activas' : 'Activar notificaciones'}
             >
               {notificationPermission === 'granted' || audioEnabled ? <BellRing className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
             </button>
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-300 md:h-11 md:w-11">
               <MessageCircle className="h-5 w-5" />
             </div>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-2 rounded-2xl border border-slate-800 bg-slate-900/80 px-3 py-2.5">
+        <div className="mt-3 flex items-center gap-2 rounded-2xl border border-slate-800 bg-slate-900/80 px-3 py-2.5 md:mt-4">
           <Search className="h-4 w-4 text-slate-500" />
           <input
             value={search}
@@ -411,7 +411,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 md:p-3">
+      <div className="flex-1 overflow-y-auto p-2 pb-4 md:p-3">
         {filteredContacts.length === 0 ? (
           <div className="m-2 rounded-3xl border border-dashed border-slate-800 bg-slate-900/60 p-6 text-center text-sm text-slate-500">
             No hay contactos disponibles.
@@ -425,28 +425,29 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
               key={contact.id}
               type="button"
               onClick={() => handleSelectContact(contact.id)}
-              className={`mb-2 flex w-full items-center gap-3 rounded-3xl border p-3 text-left transition active:scale-[0.99] md:p-4 ${
-                isActive ? 'border-emerald-400/40 bg-emerald-500/10' : 'border-transparent bg-slate-900/50 hover:border-slate-800 hover:bg-slate-900'
+              className={`mb-2 flex w-full items-center gap-3 rounded-[1.35rem] border p-2.5 text-left transition active:scale-[0.99] md:rounded-3xl md:p-4 ${
+                isActive ? 'border-emerald-400/40 bg-emerald-500/10' : 'border-slate-900/60 bg-slate-900/55 hover:border-slate-800 hover:bg-slate-900'
               }`}
             >
-              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-sky-500 text-base font-black text-slate-950 md:h-12 md:w-12">
+              <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-sky-500 text-base font-black text-slate-950 md:h-12 md:w-12">
                 {initials(contact)}
                 <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-slate-950 bg-emerald-400" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="truncate text-sm font-black text-white md:text-base">{contact.full_name || contact.email}</p>
+                  <p className="truncate text-[13px] font-black text-white md:text-base">{contact.full_name || contact.email}</p>
                   {(unreadByContact[contact.id] || 0) > 0 ? (
                     <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-sky-400 px-2 text-[11px] font-black text-slate-950">
                       {unreadByContact[contact.id]}
                     </span>
                   ) : (
-                    <span className="text-[11px] font-bold text-slate-500">Ahora</span>
+                    <span className="hidden text-[11px] font-bold text-slate-500 sm:inline">Ahora</span>
                   )}
                 </div>
-                <p className="mt-0.5 truncate text-xs font-semibold text-slate-400">
-                  {positionLabel(contact)} · {roleLabel(contact.role)} {contact.email ? `· ${contact.email}` : ''}
+                <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-400 md:text-xs">
+                  {positionLabel(contact)} · {roleLabel(contact.role)}
                 </p>
+                {contact.email ? <p className="mt-0.5 truncate text-[10px] font-medium text-slate-600 md:text-xs">{contact.email}</p> : null}
               </div>
             </button>
           )
@@ -456,7 +457,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   )
 
   const Conversation = (
-    <div className="flex h-[calc(100dvh-120px)] min-h-[620px] flex-col overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 shadow-2xl shadow-black/20 md:h-auto md:min-h-[700px]">
+    <div className="flex h-[calc(100dvh-86px)] min-h-0 flex-col overflow-hidden rounded-[26px] border border-slate-800 bg-slate-950 shadow-2xl shadow-black/20 md:h-auto md:min-h-[700px] md:rounded-[28px]">
       <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-slate-800 bg-slate-950/95 p-3 backdrop-blur md:p-5">
         <button
           type="button"
@@ -544,7 +545,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
         )}
       </div>
 
-      <form onSubmit={handleSend} className="sticky bottom-0 flex items-end gap-2 border-t border-slate-800 bg-slate-950/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur md:gap-3 md:p-4">
+      <form onSubmit={handleSend} className="sticky bottom-0 flex items-end gap-2 border-t border-slate-800 bg-slate-950/95 p-3 pb-[calc(5.35rem+env(safe-area-inset-bottom))] backdrop-blur md:gap-3 md:p-4">
         <input
           ref={inputRef}
           value={message}
@@ -566,7 +567,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   )
 
   return (
-    <div className="relative -mx-2 md:mx-0">
+    <div className="relative -mx-1 md:mx-0">
       {incomingToast ? (
         <button
           type="button"

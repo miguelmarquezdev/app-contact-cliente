@@ -216,4 +216,16 @@ Se mejoró el instalador PWA para que no redirija como simple enlace.
 - En iPhone muestra instrucciones claras: debe abrirse en Safari y usar Compartir → Agregar a pantalla de inicio.
 - Para que el botón diga “Instalar app” y no “Agregar acceso directo”, la app debe estar publicada en HTTPS y el Service Worker debe estar activo.
 - En localhost puede probarse en computadora, pero en celular debe usarse una URL publicada con HTTPS, por ejemplo Vercel.
-Actualización para nuevo deploy
+
+## Nota PWA Android
+
+Esta versión usa `public/site.webmanifest` con iconos `any` y `maskable`, `display: standalone`, `start_url` y service worker actualizado para que Chrome Android muestre **Instalar app** en vez de solo **Crear acceso directo**.
+
+Después de subir a Vercel:
+
+1. Abre el link directamente en **Chrome Android**.
+2. Borra datos/cache del sitio si antes probaste una versión anterior.
+3. Espera que cargue completo.
+4. Menú ⋮ → **Instalar app**.
+
+Si todavía sale “Crear acceso directo”, abre DevTools en computadora → Application → Manifest y revisa que esté leyendo `/site.webmanifest` y que el service worker esté activo.

@@ -6,7 +6,7 @@ import { OfflineStatus } from '@/components/offline-status'
 export const metadata: Metadata = {
   title: 'Happy Manager',
   description: 'CRM turístico con itinerarios, clientes, documentos y chat.',
-  manifest: '/manifest.webmanifest',
+  manifest: '/site.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: '/icons/icon-192.png',
-    apple: '/icons/icon-192.png'
+    apple: '/icons/icon-192.png', shortcut: '/icons/icon-192.png'
   }
 }
 

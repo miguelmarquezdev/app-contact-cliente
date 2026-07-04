@@ -1,9 +1,15 @@
 'use client'
 
+import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 
-export function LogoutButton() {
+type LogoutButtonProps = {
+  variant?: 'default' | 'sidebar' | 'mobileNav'
+}
+
+export function LogoutButton({ variant = 'default' }: LogoutButtonProps) {
   const supabase = createClient()
+
   async function logout() {
     if ('serviceWorker' in navigator) {
       const registration = await navigator.serviceWorker.ready.catch(() => null)
@@ -12,5 +18,37 @@ export function LogoutButton() {
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
+
+  if (variant === 'sidebar') {
+    return (
+      <button
+        type="button"
+        onClick={logout}
+        className="group mt-4 flex w-full items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-500/20 hover:text-red-100"
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/10 text-red-300 ring-1 ring-red-500/20 transition group-hover:bg-red-500/20">
+          <LogOut className="h-5 w-5" />
+        </span>
+        Cerrar sesión
+      </button>
+    )
+  }
+
+  if (variant === 'mobileNav') {
+    return (
+      <button
+        type="button"
+        onClick={logout}
+        className="group flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] font-black text-red-300 transition active:scale-95 hover:bg-red-500/10 hover:text-red-200"
+        aria-label="Cerrar sesión"
+      >
+        <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-red-500/10 text-red-300 ring-1 ring-red-500/20 transition group-hover:bg-red-500/15 group-hover:ring-red-500/30">
+          <LogOut className="h-4 w-4" />
+        </span>
+        <span className="max-w-full truncate leading-none">Salir</span>
+      </button>
+    )
+  }
+
   return <button onClick={logout} className="btn-secondary">Cerrar sesión</button>
 }

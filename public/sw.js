@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v24'
+const CACHE_VERSION = 'v26'
 const SHELL_CACHE = `happy-manager-shell-${CACHE_VERSION}`
 const PAGE_CACHE = `happy-manager-pages-${CACHE_VERSION}`
 const ASSET_CACHE = `happy-manager-assets-${CACHE_VERSION}`
@@ -18,7 +18,7 @@ const APP_SHELL = [
   '/collaborator/chat',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/manifest.webmanifest'
+  '/site.webmanifest'
 ]
 
 function isStaticAsset(url) {
