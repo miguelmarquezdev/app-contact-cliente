@@ -216,3 +216,4 @@ Se mejoró el instalador PWA para que no redirija como simple enlace.
 - En iPhone muestra instrucciones claras: debe abrirse en Safari y usar Compartir → Agregar a pantalla de inicio.
 - Para que el botón diga “Instalar app” y no “Agregar acceso directo”, la app debe estar publicada en HTTPS y el Service Worker debe estar activo.
 - En localhost puede probarse en computadora, pero en celular debe usarse una URL publicada con HTTPS, por ejemplo Vercel.
+Actualización para nuevo deploy
