@@ -1,0 +1,82 @@
+import { PageShell } from '@/components/page-shell'
+import { RealtimeChat } from '@/components/realtime-chat'
+import { createClient } from '@/lib/supabase-server'
+
+type Contact = {
+  id: string
+  full_name: string | null
+  email: string | null
+  role: string | null
+  position?: string | null
+}
+
+type ClientAssignment = {
+  clients: {
+    profile_id: string
+    profiles: Contact | null
+  } | null
+}
+
+export default async function CollaboratorChatPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from('profiles').select('full_name,email,role').eq('id', user?.id).single()
+
+  const { data: teamContacts } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, role, position')
+    .in('role', ['admin', 'tour_leader', 'collaborator'])
+    .eq('status', 'active')
+    .neq('id', user?.id || '')
+    .order('role', { ascending: true })
+    .order('full_name', { ascending: true })
+    .returns<Contact[]>()
+
+  const { data: links } = user?.id
+    ? await supabase.from('itinerary_day_collaborators').select('day_id').eq('collaborator_id', user.id)
+    : { data: [] }
+
+  const dayIds = [...new Set((links || []).map((item) => item.day_id).filter(Boolean))]
+
+  const { data: days } = dayIds.length
+    ? await supabase.from('itinerary_days').select('itinerary_id').in('id', dayIds)
+    : { data: [] }
+
+  const itineraryIds = [...new Set((days || []).map((item) => item.itinerary_id).filter(Boolean))]
+
+  const { data: clientAssignments } = itineraryIds.length
+    ? await supabase
+        .from('client_itineraries')
+        .select('clients(profile_id,profiles(id,full_name,email,role,position))')
+        .in('itinerary_id', itineraryIds)
+        .returns<ClientAssignment[]>()
+    : { data: [] as ClientAssignment[] }
+
+  const clientContacts = (clientAssignments || [])
+    .map((item) => item.clients?.profiles)
+    .filter(Boolean) as Contact[]
+
+  const contactsMap = new Map<string, Contact>()
+  ;[...(teamContacts || []), ...clientContacts].forEach((contact) => {
+    if (contact.id && contact.id !== user?.id) contactsMap.set(contact.id, contact)
+  })
+
+  const contacts = Array.from(contactsMap.values())
+
+  return (
+    <PageShell>
+      <div className="mb-6">
+        <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Panel colaborador</p>
+        <h1 className="text-3xl font-black text-white">Chat de operación</h1>
+        <p className="mt-2 text-sm text-slate-500">Selecciona un cliente, admin, tour leader o colaborador para conversar en vivo.</p>
+      </div>
+
+      <RealtimeChat
+        currentUserId={user?.id || ''}
+        currentUserName={profile?.full_name || profile?.email || 'Colaborador'}
+        contacts={contacts}
+        title="Chat colaborador"
+      />
+    </PageShell>
+  )
+}
