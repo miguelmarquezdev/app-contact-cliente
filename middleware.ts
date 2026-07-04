@@ -74,5 +74,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)']
+  // Importante para PWA: NO proteger manifest, service worker ni assets públicos.
+  // Si el middleware redirige /site.webmanifest o /sw.js a /login, Chrome no detecta
+  // la app como instalable y solo muestra "Crear acceso directo".
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|sw.js|site.webmanifest|manifest.webmanifest|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|json|js|css|txt)$).*)'
+  ]
 }

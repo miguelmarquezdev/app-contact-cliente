@@ -229,3 +229,12 @@ Después de subir a Vercel:
 4. Menú ⋮ → **Instalar app**.
 
 Si todavía sale “Crear acceso directo”, abre DevTools en computadora → Application → Manifest y revisa que esté leyendo `/site.webmanifest` y que el service worker esté activo.
+
+
+## Fix PWA Android / Chrome
+
+En esta versión se corrigió el middleware para que `/site.webmanifest` y `/sw.js` no sean redirigidos al login. Esa era la causa principal de que Android mostrara solo “Crear acceso directo” en vez de “Instalar app”.
+
+Después de subir a Vercel, borra datos del sitio en Chrome Android si ya probaste versiones anteriores:
+Chrome > Configuración > Configuración de sitios > Datos almacenados > tu dominio > Borrar datos.
+Luego abre nuevamente el link en Chrome y espera unos segundos.
