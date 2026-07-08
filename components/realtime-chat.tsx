@@ -1,21 +1,16 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft,
   Bell,
   BellRing,
   Check,
-  ClipboardList,
-  Home,
   Loader2,
   MessageCircle,
   MoreVertical,
   Search,
   Send,
-  User,
   Users,
   X
 } from 'lucide-react'
@@ -101,35 +96,7 @@ function formatMessageTime(date: string) {
   })
 }
 
-function mobileNavItems(pathname: string) {
-  if (pathname.startsWith('/client')) {
-    return [
-      { href: '/client/dashboard', label: 'Inicio', icon: Home },
-      { href: '/client/itineraries', label: 'Itinerarios', icon: ClipboardList },
-      { href: '/client/chat', label: 'Chats', icon: MessageCircle },
-      { href: '/client/profile', label: 'Perfil', icon: User }
-    ]
-  }
-
-  if (pathname.startsWith('/collaborator')) {
-    return [
-      { href: '/collaborator/dashboard', label: 'Inicio', icon: Home },
-      { href: '/collaborator/itineraries', label: 'Mis días', icon: ClipboardList },
-      { href: '/collaborator/chat', label: 'Chats', icon: MessageCircle },
-      { href: '/collaborator/profile', label: 'Perfil', icon: User }
-    ]
-  }
-
-  return [
-    { href: '/dashboard', label: 'Inicio', icon: Home },
-    { href: '/itineraries', label: 'Itinerarios', icon: ClipboardList },
-    { href: '/clients', label: 'Clientes', icon: Users },
-    { href: '/chat', label: 'Chats', icon: MessageCircle }
-  ]
-}
-
 export function RealtimeChat({ currentUserId, currentUserName, contacts, title = 'Chat en vivo', helper }: RealtimeChatProps) {
-  const pathname = usePathname()
   const supabase = useMemo(() => createClient(), [])
   const [selectedContactId, setSelectedContactId] = useState('')
   const [mobileConversationOpen, setMobileConversationOpen] = useState(false)
@@ -142,6 +109,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
   const bottomRef = useRef<HTMLDivElement | null>(null)
+  const messageContainerRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const selectedContactIdRef = useRef('')
@@ -345,7 +313,18 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   }, [contacts, selectedContactId])
 
   const scrollBottom = useCallback((smooth = true) => {
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' }), 70)
+    const behavior: ScrollBehavior = smooth ? 'smooth' : 'auto'
+    window.setTimeout(() => {
+      if (messageContainerRef.current) {
+        messageContainerRef.current.scrollTo({ top: messageContainerRef.current.scrollHeight, behavior })
+      }
+      bottomRef.current?.scrollIntoView({ behavior, block: 'end' })
+    }, 80)
+    window.setTimeout(() => {
+      if (messageContainerRef.current) {
+        messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight
+      }
+    }, 260)
   }, [])
 
   const loadMessages = useCallback(async (targetRoomId: string) => {
@@ -403,6 +382,12 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   useEffect(() => {
     if (selectedContactId) openRoom(selectedContactId)
   }, [selectedContactId, openRoom])
+
+  useEffect(() => {
+    if (mobileConversationOpen || typeof window !== 'undefined' && window.innerWidth >= 768) {
+      scrollBottom(false)
+    }
+  }, [messages.length, mobileConversationOpen, selectedContactId, scrollBottom])
 
   useEffect(() => {
     const channel = supabase
@@ -474,7 +459,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
     setSelectedContactId(contactId)
     setUnreadByContact((current) => ({ ...current, [contactId]: 0 }))
     setMobileConversationOpen(true)
-    setTimeout(() => inputRef.current?.focus(), 250)
+    scrollBottom(false)
   }
 
   async function handleSend(event: React.FormEvent<HTMLFormElement>) {
@@ -522,8 +507,6 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
 
     setSending(false)
   }
-
-  const nav = mobileNavItems(pathname)
 
   const ContactsList = (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#09071a] md:border-r md:border-violet-400/10">
@@ -605,22 +588,6 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
         })}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-violet-400/10 bg-[#0a071d]/95 px-2 pb-[calc(.45rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden">
-        <nav className="grid grid-cols-4 gap-1">
-          {nav.map((item) => {
-            const Icon = item.icon
-            const active = pathname === item.href
-            return (
-              <Link key={item.href} href={item.href} className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-2xl px-1.5 text-[11px] font-black transition active:scale-95 ${active ? 'text-emerald-300' : 'text-slate-400'}`}>
-                <span className={`flex h-8 min-w-12 items-center justify-center rounded-full ${active ? 'bg-emerald-400/15 text-emerald-300' : 'text-slate-400'}`}>
-                  <Icon className="h-5 w-5" />
-                </span>
-                {item.label}
-              </Link>
-            )
-          })}
-        </nav>
-      </div>
     </div>
   )
 
@@ -670,7 +637,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
         </div>
       ) : null}
 
-      <div className="chat-wall chat-scrollbar flex-1 overflow-y-auto px-3 py-4 md:px-6 md:py-6">
+      <div ref={messageContainerRef} className="chat-wall chat-scrollbar flex-1 overflow-y-auto px-3 py-4 md:px-6 md:py-6">
         {!selectedContact ? (
           <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
             <Users className="mb-3 h-10 w-10 text-violet-300" />
@@ -743,7 +710,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   )
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-[#050315]">
+    <div className="relative h-[calc(100dvh-86px)] w-full overflow-hidden bg-[#050315] md:h-dvh">
       {incomingToast ? (
         <button
           type="button"

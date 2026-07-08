@@ -20,7 +20,7 @@ export default async function ChatPage() {
     .order('full_name', { ascending: true })
 
   return (
-    <PageShell full hideMobileNav>
+    <PageShell full>
       <RealtimeChat
         currentUserId={user?.id || ''}
         currentUserName={profile?.full_name || profile?.email || 'Usuario'}

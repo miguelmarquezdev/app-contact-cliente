@@ -9,8 +9,8 @@ type PageShellProps = {
 export function PageShell({ children, full = false, hideMobileNav = false }: PageShellProps) {
   return (
     <main className="flex min-h-screen bg-[#050315] text-white">
-      <Sidebar hideMobileNav={hideMobileNav} />
-      <section className={full ? 'flex-1 overflow-hidden p-0' : 'flex-1 p-4 pb-28 lg:p-8'}>
+      <Sidebar hideMobileNav={hideMobileNav} hideMobileHeader={full} />
+      <section className={full ? 'flex-1 overflow-hidden p-0 pb-[86px] lg:pb-0' : 'flex-1 p-4 pt-24 pb-28 lg:p-8'}>
         {full ? children : <div className="mx-auto max-w-7xl">{children}</div>}
       </section>
     </main>

@@ -64,7 +64,7 @@ export default async function CollaboratorChatPage() {
   const contacts = Array.from(contactsMap.values())
 
   return (
-    <PageShell full hideMobileNav>
+    <PageShell full>
       <RealtimeChat
         currentUserId={user?.id || ''}
         currentUserName={profile?.full_name || profile?.email || 'Colaborador'}

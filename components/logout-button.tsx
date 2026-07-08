@@ -39,11 +39,11 @@ export function LogoutButton({ variant = 'default' }: LogoutButtonProps) {
       <button
         type="button"
         onClick={logout}
-        className="group flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] font-black text-red-300 transition active:scale-95 hover:bg-red-500/10 hover:text-red-200"
+        className="group flex min-h-[60px] flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-[11px] font-black text-slate-400 transition active:scale-95 hover:text-red-200"
         aria-label="Cerrar sesión"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-red-500/10 text-red-300 ring-1 ring-red-500/20 transition group-hover:bg-red-500/15 group-hover:ring-red-500/30">
-          <LogOut className="h-4 w-4" />
+        <span className="flex h-9 min-w-12 items-center justify-center rounded-full bg-transparent text-slate-400 transition group-hover:bg-red-500/10 group-hover:text-red-200">
+          <LogOut className="h-5 w-5" />
         </span>
         <span className="max-w-full truncate leading-none">Salir</span>
       </button>
