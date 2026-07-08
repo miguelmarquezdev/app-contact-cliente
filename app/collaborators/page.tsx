@@ -18,7 +18,7 @@ export default async function CollaboratorsPage({ searchParams }: PageProps) {
 
   return (
     <PageShell>
-      <div className="mb-6">
+      <div className="mb-6 hidden lg:block">
         <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Equipo</p>
         <h1 className="text-3xl font-black text-white">Colaboradores</h1>
         <p className="mt-2 text-sm text-slate-500">Administra guías, operadores, conductores, asistentes y tour leaders.</p>

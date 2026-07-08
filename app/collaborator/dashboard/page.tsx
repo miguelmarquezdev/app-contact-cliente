@@ -39,7 +39,7 @@ export default async function CollaboratorDashboardPage() {
 
   return (
     <PageShell>
-      <div className="mb-8 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+      <div className="mb-8 hidden flex-col justify-between gap-4 lg:flex lg:flex-row lg:items-center">
         <div>
           <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Panel colaborador</p>
           <h1 className="mt-1 text-3xl font-black text-white">Hola, {profile?.full_name || user?.email}</h1>

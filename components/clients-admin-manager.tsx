@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Eye, Mail, Pencil, Phone, Plus, Search, ShieldCheck, Trash2, UserRound } from 'lucide-react'
 
 type Profile = {
@@ -76,6 +76,21 @@ export function ClientsAdminManager({
   const [mode, setMode] = useState<Mode>({ type: 'list' })
   const [query, setQuery] = useState('')
 
+  useEffect(() => {
+    const openCreate = () => setMode({ type: 'create' })
+    window.addEventListener('app:create', openCreate)
+    return () => window.removeEventListener('app:create', openCreate)
+  }, [])
+
+  useEffect(() => {
+    const handleSearch = (event: Event) => {
+      const customEvent = event as CustomEvent<string>
+      setQuery(customEvent.detail || '')
+    }
+    window.addEventListener('app:search', handleSearch)
+    return () => window.removeEventListener('app:search', handleSearch)
+  }, [])
+
   const filteredClients = useMemo(() => {
     const value = query.trim().toLowerCase()
     if (!value) return clients
@@ -144,7 +159,7 @@ export function ClientsAdminManager({
           </div>
         </div>
 
-        <section className="card overflow-hidden">
+        <section className="card overflow-hidden mobile-compact-list">
           <div className="border-b border-[#1e293b] bg-gradient-to-r from-emerald-500/10 via-[#0b1220] to-sky-500/10 p-6">
             <p className="badge-brand inline-flex">Perfil de cliente</p>
             <h2 className="mt-3 text-3xl font-black text-white">{profile?.full_name || 'Cliente sin nombre'}</h2>
@@ -213,7 +228,8 @@ export function ClientsAdminManager({
 
   return (
     <div className="space-y-6">
-      <section className="card p-5 sm:p-6">
+
+            <section className="card hidden p-5 sm:p-6 lg:block">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Pasajeros</p>
@@ -236,7 +252,7 @@ export function ClientsAdminManager({
         </div>
       </section>
 
-      <section className="card overflow-hidden">
+      <section className="card overflow-hidden mobile-compact-list">
         <div className="hidden grid-cols-[1.4fr_1fr_1fr_120px_260px] gap-4 border-b border-[#1e293b] px-5 py-4 text-xs font-black uppercase tracking-widest text-slate-500 lg:grid">
           <span>Cliente</span>
           <span>Contacto</span>
@@ -257,7 +273,7 @@ export function ClientsAdminManager({
           {filteredClients.map((client) => {
             const profile = client.profiles
             return (
-              <article key={client.id} className="grid gap-4 p-5 transition hover:bg-[#111827]/45 lg:grid-cols-[1.4fr_1fr_1fr_120px_260px] lg:items-center">
+              <article key={client.id} className="mobile-compact-row grid gap-4 p-5 transition hover:bg-[#111827]/45 lg:grid-cols-[1.4fr_1fr_1fr_120px_260px] lg:items-center">
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20">
@@ -269,20 +285,20 @@ export function ClientsAdminManager({
                     </div>
                   </div>
                 </div>
-                <div className="text-sm text-slate-300">
+                <div className="mobile-list-secondary text-sm text-slate-300">
                   <p className="truncate font-semibold">{profile?.email || 'Sin correo'}</p>
                   <p className="mt-1 truncate text-slate-500">{profile?.phone || 'Sin WhatsApp'}</p>
                 </div>
-                <div className="text-sm text-slate-300">
+                <div className="mobile-list-extra text-sm text-slate-300">
                   <p className="truncate font-semibold">{client.country || 'Sin país'}</p>
                   <p className="mt-1 truncate text-slate-500">{client.passport_number || 'Sin pasaporte'}</p>
                 </div>
-                <div>
+                <div className="mobile-list-status">
                   <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${profile?.status === 'inactive' ? 'bg-red-500/10 text-red-300 ring-red-500/20' : 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'}`}>
                     {statusLabel(profile?.status)}
                   </span>
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
+                <div className="mobile-card-actions flex flex-col gap-2 sm:flex-row lg:justify-end">
                   <button type="button" onClick={() => setMode({ type: 'detail', clientId: client.id })} className="btn-secondary py-2.5">
                     <Eye className="mr-2 inline h-4 w-4" /> Ver
                   </button>

@@ -238,3 +238,10 @@ En esta versión se corrigió el middleware para que `/site.webmanifest` y `/sw.
 Después de subir a Vercel, borra datos del sitio en Chrome Android si ya probaste versiones anteriores:
 Chrome > Configuración > Configuración de sitios > Datos almacenados > tu dominio > Borrar datos.
 Luego abre nuevamente el link en Chrome y espera unos segundos.
+
+## v40
+
+- Se reemplazó el acceso rápido de chat en la cabecera móvil por menú de tres puntos.
+- El menú de tres puntos abre un panel oscuro tipo WhatsApp con la opción “Cerrar sesión”.
+- El mismo menú se agregó en la cabecera del chat, lista y conversación.
+- El cierre de sesión limpia caché offline y regresa al login.

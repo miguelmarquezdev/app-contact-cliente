@@ -87,7 +87,7 @@ export default async function ItinerariesPage() {
 
   return (
     <PageShell>
-      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div className="mb-6 hidden flex-col gap-3 lg:flex lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Itinerarios independientes</p>
           <h1 className="text-3xl font-black text-white">Constructor de itinerarios</h1>

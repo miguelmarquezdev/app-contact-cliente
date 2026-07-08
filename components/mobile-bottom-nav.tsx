@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ClipboardList, LayoutDashboard, MessageCircle, Route, User, Users } from 'lucide-react'
-import { LogoutButton } from './logout-button'
 
 type MobileBottomNavProps = {
   role?: string | null
@@ -41,8 +40,8 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
   const items = role === 'client' ? clientItems : role === 'collaborator' || role === 'tour_leader' ? collaboratorItems : adminItems
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-violet-400/10 bg-[#090712]/98 px-2 pb-[calc(.45rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_50px_rgba(0,0,0,.55)] backdrop-blur-xl lg:hidden">
-      <nav className="mx-auto grid max-w-md grid-cols-5 gap-1">
+    <div className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-violet-400/10 bg-[#090712]/98 px-2 pb-[calc(.45rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_50px_rgba(0,0,0,.55)] backdrop-blur-xl lg:hidden">
+      <nav className="mx-auto grid max-w-md grid-cols-4 gap-1">
         {items.map((item) => {
           const Icon = item.icon
           const active = isActivePath(pathname, item.href)
@@ -71,7 +70,6 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
             </Link>
           )
         })}
-        <LogoutButton variant="mobileNav" />
       </nav>
     </div>
   )

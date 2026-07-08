@@ -17,7 +17,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
 
   return (
     <PageShell>
-      <div className="mb-6">
+      <div className="mb-6 hidden lg:block">
         <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Pasajeros</p>
         <h1 className="text-3xl font-black text-white">Clientes</h1>
         <p className="mt-2 text-sm text-slate-500">Administra clientes con listado, buscador, vista de perfil, edición y eliminación.</p>

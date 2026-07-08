@@ -3,17 +3,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft,
-  Bell,
   BellRing,
   Check,
   Loader2,
   MessageCircle,
-  MoreVertical,
   Search,
   Send,
   Users,
   X
 } from 'lucide-react'
+import { MobileKebabMenu } from './mobile-kebab-menu'
 import { createClient } from '@/lib/supabase-browser'
 
 type Contact = {
@@ -115,8 +114,6 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   const selectedContactIdRef = useRef('')
   const roomIdRef = useRef('')
   const contactsRef = useRef<Contact[]>(contacts)
-  const [notificationPermission, setNotificationPermission] = useState('default')
-  const [audioEnabled, setAudioEnabled] = useState(false)
   const [incomingToast, setIncomingToast] = useState<IncomingToast | null>(null)
   const [unreadByContact, setUnreadByContact] = useState<Record<string, number>>({})
   const [activityByContact, setActivityByContact] = useState<Record<string, number>>({})
@@ -190,9 +187,6 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   }, [roomId])
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotificationPermission(Notification.permission)
-    }
     if (typeof window !== 'undefined') {
       setOnline(navigator.onLine)
       const updateOnline = () => setOnline(navigator.onLine)
@@ -217,8 +211,6 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
     if (audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume().catch(() => null)
     }
-
-    setAudioEnabled(true)
   }, [])
 
   const playNotificationSound = useCallback(() => {
@@ -250,13 +242,6 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
     } catch {
       // Navegadores móviles pueden bloquear sonido hasta que haya interacción.
     }
-  }, [unlockSound])
-
-  const requestNotifications = useCallback(async () => {
-    unlockSound()
-    if (typeof window === 'undefined' || !('Notification' in window)) return
-    const permission = await Notification.requestPermission()
-    setNotificationPermission(permission)
   }, [unlockSound])
 
   const showBrowserNotification = useCallback((senderName: string, body: string) => {
@@ -390,6 +375,17 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   }, [messages.length, mobileConversationOpen, selectedContactId, scrollBottom])
 
   useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    const shouldHideMobileNav = mobileConversationOpen && Boolean(selectedContactId)
+    document.documentElement.classList.toggle('chat-conversation-open', shouldHideMobileNav)
+
+    return () => {
+      document.documentElement.classList.remove('chat-conversation-open')
+    }
+  }, [mobileConversationOpen, selectedContactId])
+
+  useEffect(() => {
     const channel = supabase
       .channel(`chat-notifications-${currentUserId}`)
       .on(
@@ -516,20 +512,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
             <p className="hidden text-xs font-black uppercase tracking-[0.22em] text-emerald-300 md:block">Inbox · operativo</p>
             <h2 className="truncate text-2xl font-black text-white md:mt-1 md:text-xl">{title}</h2>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={requestNotifications}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/12 text-violet-200 transition hover:bg-violet-500/25"
-              title={notificationPermission === 'granted' ? 'Notificaciones activas' : 'Activar notificaciones'}
-              aria-label={notificationPermission === 'granted' ? 'Notificaciones activas' : 'Activar notificaciones'}
-            >
-              {notificationPermission === 'granted' || audioEnabled ? <BellRing className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
-            </button>
-            <button type="button" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#111026] text-slate-300">
-              <MoreVertical className="h-5 w-5" />
-            </button>
-          </div>
+          <MobileKebabMenu buttonClassName="h-10 w-10 bg-[#111026] text-slate-300 ring-0 hover:bg-white/[.06]" />
         </div>
 
         <div className="mt-3 flex items-center gap-3 rounded-full border border-violet-400/10 bg-[#151329] px-4 py-3">
@@ -543,7 +526,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
         </div>
       </div>
 
-      <div className="chat-scrollbar flex-1 overflow-y-auto px-0 py-2 pb-24 md:pb-4">
+      <div className="chat-scrollbar flex-1 overflow-y-auto px-0 py-2 pb-3 md:pb-4">
         {filteredContacts.length === 0 ? (
           <div className="m-3 rounded-3xl border border-dashed border-violet-400/15 bg-white/[.03] p-6 text-center text-sm text-slate-500">
             No hay contactos disponibles.
@@ -620,9 +603,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
         <button type="button" className="hidden h-10 w-10 items-center justify-center rounded-full bg-white/[.04] text-slate-300 hover:bg-white/[.08] md:flex">
           <Search className="h-5 w-5" />
         </button>
-        <button type="button" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[.04] text-slate-300 hover:bg-white/[.08]">
-          <MoreVertical className="h-5 w-5" />
-        </button>
+        <MobileKebabMenu buttonClassName="h-10 w-10 bg-white/[.04] text-slate-300 ring-0 hover:bg-white/[.08]" />
       </div>
 
       {!online ? (
@@ -710,7 +691,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   )
 
   return (
-    <div className="relative h-[calc(100dvh-86px)] w-full overflow-hidden bg-[#050315] md:h-dvh">
+    <div className={`relative w-full overflow-hidden bg-[#050315] md:h-dvh ${mobileConversationOpen ? 'h-dvh' : 'h-[calc(100dvh-86px)]'}`}>
       {incomingToast ? (
         <button
           type="button"

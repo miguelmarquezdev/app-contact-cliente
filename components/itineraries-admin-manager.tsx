@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, CalendarDays, Eye, FileText, Plus, Route, Search, Send, Users } from 'lucide-react'
 import { ItineraryBuilder, type CollaboratorOption } from '@/components/itinerary-builder'
 import { ItineraryDaysTabs, type ItineraryTabDay } from '@/components/itinerary-days-tabs'
@@ -67,6 +67,21 @@ export function ItinerariesAdminManager({
 }) {
   const [mode, setMode] = useState<Mode>({ type: 'list' })
   const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    const openCreate = () => setMode({ type: 'create' })
+    window.addEventListener('app:create', openCreate)
+    return () => window.removeEventListener('app:create', openCreate)
+  }, [])
+
+  useEffect(() => {
+    const handleSearch = (event: Event) => {
+      const customEvent = event as CustomEvent<string>
+      setQuery(customEvent.detail || '')
+    }
+    window.addEventListener('app:search', handleSearch)
+    return () => window.removeEventListener('app:search', handleSearch)
+  }, [])
 
   const filteredItineraries = useMemo(() => {
     const value = query.trim().toLowerCase()
@@ -139,7 +154,8 @@ export function ItinerariesAdminManager({
 
   return (
     <div className="space-y-6">
-      <div className="card p-5 sm:p-6">
+
+            <div className="card hidden p-5 sm:p-6 lg:block">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Itinerarios guardados</p>

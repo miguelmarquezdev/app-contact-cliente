@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { LayoutDashboard, Users, Map, FileText, MessageCircle, Route, UserCog, User, ClipboardList, BriefcaseBusiness } from 'lucide-react'
 import { LogoutButton } from './logout-button'
 import { MobileBottomNav } from './mobile-bottom-nav'
+import { MobileAppHeader } from './mobile-app-header'
 import { createClient } from '@/lib/supabase-server'
 
 const adminItems = [
@@ -42,26 +43,7 @@ export async function Sidebar({ hideMobileNav = false, hideMobileHeader = false 
 
   return (
     <>
-      {!hideMobileNav && !hideMobileHeader ? (
-        <header className="fixed inset-x-0 top-0 z-50 border-b border-violet-400/10 bg-[#0a071d]/95 px-4 pb-3 pt-[calc(.75rem+env(safe-area-inset-top))] shadow-xl shadow-black/25 backdrop-blur-xl lg:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <Link href={isClient ? '/client/dashboard' : isCollaborator ? '/collaborator/dashboard' : '/dashboard'} className="flex min-w-0 items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-500/14 text-violet-200 ring-1 ring-violet-400/15">
-                {icon}
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[10px] font-black uppercase tracking-[0.22em] text-emerald-300">{portalLabel}</span>
-                <span className="block truncate text-lg font-black text-white">Happy Manager</span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <Link href={isClient ? '/client/chat' : isCollaborator ? '/collaborator/chat' : '/chat'} className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/12 text-violet-200 ring-1 ring-violet-400/10" aria-label="Abrir chat">
-                <MessageCircle className="h-5 w-5" />
-              </Link>
-            </div>
-          </div>
-        </header>
-      ) : null}
+      {!hideMobileNav && !hideMobileHeader ? <MobileAppHeader role={role} /> : null}
 
       <aside className="hidden min-h-screen w-72 border-r border-[#1e293b] bg-[#08111f]/95 p-6 shadow-2xl shadow-black/20 backdrop-blur lg:flex lg:flex-col">
         <div className="mb-8 rounded-3xl border border-[#1e293b] bg-[#0b1220] p-5">
