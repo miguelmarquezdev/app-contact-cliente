@@ -16,13 +16,7 @@ export default async function ClientChatPage() {
     .order('full_name', { ascending: true })
 
   return (
-    <PageShell>
-      <div className="mb-6 hidden md:block">
-        <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Soporte</p>
-        <h1 className="text-3xl font-black text-white">Chat con el equipo</h1>
-        <p className="mt-2 text-sm text-slate-500">Selecciona el colaborador o tour leader con quien deseas comunicarte.</p>
-      </div>
-
+    <PageShell full hideMobileNav>
       <RealtimeChat
         currentUserId={user?.id || ''}
         currentUserName={profile?.full_name || profile?.email || 'Cliente'}

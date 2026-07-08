@@ -34,7 +34,7 @@ const collaboratorItems = [
   { href: '/collaborator/profile', label: 'Perfil', icon: User }
 ]
 
-export async function Sidebar() {
+export async function Sidebar({ hideMobileNav = false }: { hideMobileNav?: boolean }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = await supabase.from('profiles').select('role,full_name,email').eq('id', user?.id).single()
@@ -75,7 +75,7 @@ export async function Sidebar() {
         </div>
       </aside>
 
-      <div className="fixed inset-x-2 bottom-2 z-50 rounded-[1.7rem] border border-slate-800/90 bg-[#07111f]/95 p-2 shadow-2xl shadow-black/50 backdrop-blur-xl lg:hidden">
+      {!hideMobileNav ? <div className="fixed inset-x-2 bottom-2 z-50 rounded-[1.7rem] border border-violet-400/15 bg-[#0b0820]/95 p-2 shadow-2xl shadow-black/50 backdrop-blur-xl lg:hidden">
         <nav className="grid grid-cols-5 gap-1">
           {mobileItems.map((item) => {
             const Icon = item.icon
@@ -90,7 +90,8 @@ export async function Sidebar() {
           })}
           <LogoutButton variant="mobileNav" />
         </nav>
-      </div>
+      </div> : null}
     </>
   )
 }
+

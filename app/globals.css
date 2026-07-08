@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #030712;
+  --background: #050315;
   --foreground: #f8fafc;
-  --surface: #0b1220;
-  --surface-soft: #111827;
+  --surface: #0a071d;
+  --surface-soft: #151329;
   --border: #1e293b;
   --muted: #94a3b8;
-  --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, .13);
+  --accent: #8b5cf6;
+  --accent-soft: rgba(139, 92, 246, .16);
   --brand: #10b981;
   --brand-soft: rgba(16, 185, 129, .13);
 }
@@ -24,8 +24,8 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(16,185,129,.18), transparent 32rem),
-    radial-gradient(circle at top right, rgba(56,189,248,.14), transparent 34rem),
+    radial-gradient(circle at top left, rgba(139,92,246,.22), transparent 34rem),
+    radial-gradient(circle at top right, rgba(16,185,129,.12), transparent 34rem),
     var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
@@ -69,13 +69,39 @@ a {
 }
 
 .chat-wall {
-  background:
-    radial-gradient(circle at top left, rgba(16, 185, 129, .08), transparent 22rem),
-    linear-gradient(180deg, rgba(15, 23, 42, .38), rgba(3, 7, 18, .98));
+  background-color: #070516;
+  background-image:
+    radial-gradient(circle at 18px 18px, rgba(139, 92, 246, .09) 0 2px, transparent 2px),
+    radial-gradient(circle at 44px 44px, rgba(16, 185, 129, .06) 0 1.5px, transparent 1.5px),
+    linear-gradient(180deg, rgba(13, 10, 35, .96), rgba(5, 3, 21, .98));
+  background-size: 68px 68px, 82px 82px, auto;
 }
 
 @media (max-width: 767px) {
   .chat-wall {
     min-height: 0;
   }
+}
+
+.chat-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, .38) rgba(15, 11, 38, .55);
+}
+
+.chat-scrollbar::-webkit-scrollbar {
+  width: 7px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 11, 38, .55);
+  border-radius: 999px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(139, 92, 246, .72), rgba(16, 185, 129, .46));
+  border-radius: 999px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(167, 139, 250, .9), rgba(52, 211, 153, .7));
 }

@@ -64,13 +64,7 @@ export default async function CollaboratorChatPage() {
   const contacts = Array.from(contactsMap.values())
 
   return (
-    <PageShell>
-      <div className="mb-6 hidden md:block">
-        <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Panel colaborador</p>
-        <h1 className="text-3xl font-black text-white">Chat de operación</h1>
-        <p className="mt-2 text-sm text-slate-500">Selecciona un cliente, admin, tour leader o colaborador para conversar en vivo.</p>
-      </div>
-
+    <PageShell full hideMobileNav>
       <RealtimeChat
         currentUserId={user?.id || ''}
         currentUserName={profile?.full_name || profile?.email || 'Colaborador'}
