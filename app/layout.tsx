@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { PWARegister } from '@/components/pwa-register'
 import { OfflineStatus } from '@/components/offline-status'
+import { OfflineNavigationGuard } from '@/components/offline-navigation-guard'
 
 export const metadata: Metadata = {
   title: 'Happy Manager',
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <PWARegister />
+        <OfflineNavigationGuard />
         <OfflineStatus />
       </body>
     </html>

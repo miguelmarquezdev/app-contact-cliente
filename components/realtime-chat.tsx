@@ -95,6 +95,37 @@ function formatMessageTime(date: string) {
   })
 }
 
+function chatRoomCacheKey(currentUserId: string, targetUserId: string) {
+  return `happy-manager-chat-room-${currentUserId}-${targetUserId}`
+}
+
+function chatMessagesCacheKey(roomId: string) {
+  return `happy-manager-chat-messages-${roomId}`
+}
+
+function chatActivityCacheKey(currentUserId: string) {
+  return `happy-manager-chat-activity-${currentUserId}`
+}
+
+function readJsonCache<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback
+  try {
+    const value = localStorage.getItem(key)
+    return value ? JSON.parse(value) as T : fallback
+  } catch {
+    return fallback
+  }
+}
+
+function writeJsonCache(key: string, value: unknown) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    // Ignore storage quota/private mode errors.
+  }
+}
+
 export function RealtimeChat({ currentUserId, currentUserName, contacts, title = 'Chat en vivo', helper }: RealtimeChatProps) {
   const supabase = useMemo(() => createClient(), [])
   const [selectedContactId, setSelectedContactId] = useState('')
@@ -119,6 +150,17 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   const [activityByContact, setActivityByContact] = useState<Record<string, number>>({})
   const [previewByContact, setPreviewByContact] = useState<Record<string, string>>({})
   const [online, setOnline] = useState(true)
+
+  useEffect(() => {
+    const cached = readJsonCache<{ activityByContact?: Record<string, number>; previewByContact?: Record<string, string> }>(chatActivityCacheKey(currentUserId), {})
+    if (cached.activityByContact) setActivityByContact(cached.activityByContact)
+    if (cached.previewByContact) setPreviewByContact(cached.previewByContact)
+  }, [currentUserId])
+
+  useEffect(() => {
+    if (!currentUserId) return
+    writeJsonCache(chatActivityCacheKey(currentUserId), { activityByContact, previewByContact })
+  }, [activityByContact, currentUserId, previewByContact])
 
   const selectedContact = contacts.find((contact) => contact.id === selectedContactId)
 
@@ -315,6 +357,15 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   const loadMessages = useCallback(async (targetRoomId: string) => {
     if (!targetRoomId) return
     setLoadingMessages(true)
+
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      const cachedMessages = readJsonCache<ChatMessage[]>(chatMessagesCacheKey(targetRoomId), [])
+      setMessages(cachedMessages)
+      scrollBottom(false)
+      setLoadingMessages(false)
+      return
+    }
+
     const { data, error } = await supabase
       .from('chat_messages')
       .select('id, chat_room_id, sender_id, message, file_url, is_read, created_at, profiles(full_name, role)')
@@ -322,10 +373,17 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
       .order('created_at', { ascending: true })
 
     if (error) {
-      setError(error.message)
+      const cachedMessages = readJsonCache<ChatMessage[]>(chatMessagesCacheKey(targetRoomId), [])
+      if (cachedMessages.length) {
+        setMessages(cachedMessages)
+        scrollBottom(false)
+      } else {
+        setError(error.message)
+      }
     } else {
       const safeData = (data as unknown as ChatMessage[]) || []
       setMessages(safeData)
+      writeJsonCache(chatMessagesCacheKey(targetRoomId), safeData)
       const last = safeData[safeData.length - 1]
       if (last) {
         const otherId = last.sender_id === currentUserId ? selectedContactIdRef.current : last.sender_id || selectedContactIdRef.current
@@ -345,6 +403,19 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
     setLoadingRoom(true)
     setMessages([])
 
+    const cachedRoomId = readJsonCache<string>(chatRoomCacheKey(currentUserId, targetUserId), '')
+
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      if (cachedRoomId) {
+        setRoomId(cachedRoomId)
+        await loadMessages(cachedRoomId)
+      } else {
+        setError('Este chat todavía no está guardado offline. Ábrelo una vez con internet para poder leerlo sin conexión.')
+      }
+      setLoadingRoom(false)
+      return
+    }
+
     try {
       const response = await fetch('/api/chat/room', {
         method: 'POST',
@@ -356,17 +427,28 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
       if (!response.ok) throw new Error(payload?.error || 'No se pudo abrir el chat')
 
       setRoomId(payload.room_id)
+      writeJsonCache(chatRoomCacheKey(currentUserId, targetUserId), payload.room_id)
       await loadMessages(payload.room_id)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al abrir el chat')
+      if (cachedRoomId) {
+        setRoomId(cachedRoomId)
+        await loadMessages(cachedRoomId)
+      } else {
+        setError(err instanceof Error ? err.message : 'Error al abrir el chat')
+      }
     } finally {
       setLoadingRoom(false)
     }
-  }, [loadMessages])
+  }, [currentUserId, loadMessages])
 
   useEffect(() => {
     if (selectedContactId) openRoom(selectedContactId)
   }, [selectedContactId, openRoom])
+
+  useEffect(() => {
+    if (!roomId || !messages.length) return
+    writeJsonCache(chatMessagesCacheKey(roomId), messages.filter((item) => !item.id.startsWith('temp-')))
+  }, [messages, roomId])
 
   useEffect(() => {
     if (mobileConversationOpen || typeof window !== 'undefined' && window.innerWidth >= 768) {

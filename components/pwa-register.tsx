@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { CheckCircle2, Download, MonitorDown, Save, Share2, Smartphone, X } from 'lucide-react'
 
 type BeforeInstallPromptEvent = Event & {
@@ -46,6 +47,7 @@ function isChromeLike() {
 }
 
 export function PWARegister() {
+  const pathname = usePathname()
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showInstall, setShowInstall] = useState(false)
   const [showInstallGuide, setShowInstallGuide] = useState(false)
@@ -59,6 +61,13 @@ export function PWARegister() {
   }, [])
 
   const device = useMemo(() => getDeviceType(), [])
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator) || !pathname) return
+    navigator.serviceWorker.ready
+      .then((registration) => registration.active?.postMessage({ type: 'CACHE_URLS', urls: [pathname] }))
+      .catch(() => undefined)
+  }, [pathname])
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {

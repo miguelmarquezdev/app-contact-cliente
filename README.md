@@ -245,3 +245,11 @@ Luego abre nuevamente el link en Chrome y espera unos segundos.
 - El menú de tres puntos abre un panel oscuro tipo WhatsApp con la opción “Cerrar sesión”.
 - El mismo menú se agregó en la cabecera del chat, lista y conversación.
 - El cierre de sesión limpia caché offline y regresa al login.
+
+## v45 - Offline mejorado
+
+- Navegación offline más estable: si el usuario cambia de pestaña sin internet, la app usa la última pantalla guardada por el service worker.
+- El service worker cachea páginas, assets, respuestas RSC/Next y lecturas GET de Supabase.
+- En modo offline, los enlaces internos fuerzan navegación normal para evitar que Next.js se quede esperando datos remotos.
+- El chat guarda sala, últimos mensajes, preview y orden de contactos en localStorage para lectura offline de conversaciones ya abiertas antes.
+- El chat sigue sin poder enviar mensajes sin internet; al volver la conexión recupera el modo realtime.
