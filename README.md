@@ -354,3 +354,13 @@ Si alguna vista queda bloqueada mientras ajustamos permisos, existe un rollback 
 ```sql
 -- archivo: supabase/migration-v61-rollback-open-mvp.sql
 ```
+
+## v65 - Next.js security update
+
+Updated Next.js to `15.5.18` to satisfy Vercel security checks for vulnerable Next.js versions.
+Deployment should use npm:
+
+```txt
+Install Command: npm install --no-audit --no-fund --legacy-peer-deps
+Build Command: npm run build
+```
