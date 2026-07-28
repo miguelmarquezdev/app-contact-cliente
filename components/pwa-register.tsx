@@ -169,49 +169,49 @@ export function PWARegister() {
   return (
     <>
       {!isStandalone && showInstall ? (
-        <div className="fixed inset-x-4 bottom-24 z-[90] rounded-3xl border border-emerald-500/30 bg-[#07111f]/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl lg:bottom-6 lg:left-auto lg:right-6 lg:w-[390px]">
+        <div className="fixed inset-x-4 bottom-24 z-[90] rounded-3xl border border-[#14264F]/10 bg-white/95 p-4 shadow-2xl shadow-slate-300/80 backdrop-blur-xl lg:bottom-6 lg:left-auto lg:right-6 lg:w-[390px]">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#14264F]/15 text-[#0EA5E9] ring-1 ring-emerald-500/30">
               {showInstallGuide ? <Share2 className="h-5 w-5" /> : icon}
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-black text-white">{showInstallGuide ? 'Cómo instalar Happy Manager' : title}</h3>
+              <h3 className="text-sm font-black text-[#14264F]">{showInstallGuide ? 'Cómo instalar Sunbeam App' : title}</h3>
 
               {!showInstallGuide ? (
                 <>
-                  <p className="mt-1 text-xs leading-5 text-slate-400">
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
                     Instálalo como app real. No abrirá un simple link: quedará en tu pantalla de inicio o escritorio.
                   </p>
-                  <button type="button" onClick={installApp} className="mt-3 rounded-2xl bg-emerald-500 px-4 py-2 text-xs font-black text-white shadow-lg shadow-emerald-950/30 transition active:scale-95">
+                  <button type="button" onClick={installApp} className="mt-3 rounded-2xl bg-[#14264F] px-4 py-2 text-xs font-black text-white shadow-lg shadow-emerald-950/30 transition active:scale-95">
                     <span className="inline-flex items-center gap-2"><Download className="h-4 w-4" /> Instalar app</span>
                   </button>
                 </>
               ) : (
-                <div className="mt-2 space-y-2 text-xs leading-5 text-slate-300">
+                <div className="mt-2 space-y-2 text-xs leading-5 text-slate-600">
                   {device === 'ios' ? (
                     <>
-                      <p><b className="text-white">iPhone:</b> abre esta web en <b>Safari</b>, toca <b>Compartir</b> y luego <b>Agregar a pantalla de inicio</b>.</p>
-                      <p className="text-slate-400">En iPhone, Chrome solo crea acceso tipo link. Para instalar como app debe ser desde Safari.</p>
+                      <p><b className="text-[#14264F]">iPhone:</b> abre esta web en <b>Safari</b>, toca <b>Compartir</b> y luego <b>Agregar a pantalla de inicio</b>.</p>
+                      <p className="text-slate-500">En iPhone, Chrome solo crea acceso tipo link. Para instalar como app debe ser desde Safari.</p>
                     </>
                   ) : device === 'android' ? (
                     <>
-                      <p><b className="text-white">Android:</b> abre esta web en <b>Chrome</b>, toca el menú <b>⋮</b> y elige <b>Instalar app</b>.</p>
-                      <p className="text-slate-400">Si sale “Agregar acceso directo”, espera unos segundos y recarga; la web debe estar en HTTPS.</p>
+                      <p><b className="text-[#14264F]">Android:</b> abre esta web en <b>Chrome</b>, toca el menú <b>⋮</b> y elige <b>Instalar app</b>.</p>
+                      <p className="text-slate-500">Si sale “Agregar acceso directo”, espera unos segundos y recarga; la web debe estar en HTTPS.</p>
                     </>
                   ) : (
                     <>
-                      <p><b className="text-white">Computadora:</b> abre esta web en Chrome o Edge y toca el ícono de instalar en la barra de dirección.</p>
-                      <p className="text-slate-400">También puedes entrar al menú <b>⋮</b> y elegir <b>Instalar Happy Manager</b>.</p>
+                      <p><b className="text-[#14264F]">Computadora:</b> abre esta web en Chrome o Edge y toca el ícono de instalar en la barra de dirección.</p>
+                      <p className="text-slate-500">También puedes entrar al menú <b>⋮</b> y elegir <b>Instalar Sunbeam App</b>.</p>
                     </>
                   )}
                 </div>
               )}
 
               {installed ? (
-                <p className="mt-2 inline-flex items-center gap-2 text-xs font-bold text-emerald-300"><CheckCircle2 className="h-4 w-4" /> App instalada</p>
+                <p className="mt-2 inline-flex items-center gap-2 text-xs font-bold text-[#0EA5E9]"><CheckCircle2 className="h-4 w-4" /> App instalada</p>
               ) : null}
             </div>
-            <button type="button" onClick={dismissInstall} className="rounded-full p-2 text-slate-500 transition hover:bg-slate-800 hover:text-white" aria-label="Cerrar aviso de instalación">
+            <button type="button" onClick={dismissInstall} className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-[#14264F]" aria-label="Cerrar aviso de instalación">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -222,26 +222,26 @@ export function PWARegister() {
         <button
           type="button"
           onClick={() => setShowInstall(true)}
-          className="fixed bottom-24 right-4 z-[70] hidden rounded-full border border-emerald-500/30 bg-[#07111f]/95 px-4 py-3 text-xs font-black text-emerald-200 shadow-2xl shadow-black/40 backdrop-blur-xl transition active:scale-95 md:inline-flex md:items-center md:gap-2"
+          className="fixed bottom-24 right-4 z-[70] hidden rounded-full border border-[#14264F]/10 bg-white/95 px-4 py-3 text-xs font-black text-[#14264F] shadow-2xl shadow-black/40 backdrop-blur-xl transition active:scale-95 md:inline-flex md:items-center md:gap-2"
         >
           <Download className="h-4 w-4" /> Instalar
         </button>
       ) : null}
 
       {showOfflineHint ? (
-        <div className="fixed inset-x-4 bottom-24 z-[79] rounded-3xl border border-sky-500/25 bg-[#07111f]/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl lg:bottom-6 lg:left-auto lg:right-6 lg:w-[380px]">
+        <div className="fixed inset-x-4 bottom-24 z-[79] rounded-3xl border border-[#0EA5E9]/20 bg-white/95 p-4 shadow-2xl shadow-slate-300/80 backdrop-blur-xl lg:bottom-6 lg:left-auto lg:right-6 lg:w-[380px]">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/30">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0EA5E9]/10 text-[#1E40AF] ring-1 ring-sky-500/30">
               <Save className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-black text-white">Guardar para usar offline</h3>
-              <p className="mt-1 text-xs leading-5 text-slate-400">Cliente y colaborador podrán revisar itinerarios/días ya abiertos aunque se queden sin internet.</p>
-              <button type="button" onClick={saveOffline} className="mt-3 rounded-2xl bg-sky-500 px-4 py-2 text-xs font-black text-white shadow-lg shadow-sky-950/30 transition active:scale-95">
+              <h3 className="text-sm font-black text-[#14264F]">Guardar para usar offline</h3>
+              <p className="mt-1 text-xs leading-5 text-slate-500">Cliente y colaborador podrán revisar itinerarios/días ya abiertos aunque se queden sin internet.</p>
+              <button type="button" onClick={saveOffline} className="mt-3 rounded-2xl bg-[#0EA5E9] px-4 py-2 text-xs font-black text-white shadow-lg shadow-sky-950/30 transition active:scale-95">
                 {savedOffline ? 'Guardado' : 'Guardar offline'}
               </button>
             </div>
-            <button type="button" onClick={dismissOffline} className="rounded-full p-2 text-slate-500 transition hover:bg-slate-800 hover:text-white" aria-label="Cerrar aviso offline">
+            <button type="button" onClick={dismissOffline} className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-[#14264F]" aria-label="Cerrar aviso offline">
               <X className="h-4 w-4" />
             </button>
           </div>

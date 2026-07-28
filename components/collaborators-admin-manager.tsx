@@ -120,7 +120,7 @@ export function CollaboratorsAdminManager({
         <form action={createAction} className="card grid gap-4 p-5 sm:p-6 md:grid-cols-2 xl:grid-cols-3">
           <div className="md:col-span-2 xl:col-span-3">
             <p className="badge-brand inline-flex">Nuevo colaborador</p>
-            <h2 className="mt-3 text-2xl font-black text-white">Registrar colaborador con credenciales</h2>
+            <h2 className="mt-3 text-2xl font-black text-[#14264F]">Registrar colaborador con credenciales</h2>
             <p className="mt-2 text-sm text-slate-500">Podrá ingresar al panel colaborador y ver sus días asignados.</p>
           </div>
           <input name="full_name" className="input" placeholder="Usuario / nombre completo" required />
@@ -161,31 +161,31 @@ export function CollaboratorsAdminManager({
         </div>
 
         <section className="card overflow-hidden mobile-compact-list">
-          <div className="border-b border-[#1e293b] bg-gradient-to-r from-emerald-500/10 via-[#0b1220] to-sky-500/10 p-6">
+          <div className="border-b border-slate-200 bg-gradient-to-r from-emerald-500/10 via-[#0b1220] to-sky-500/10 p-6">
             <p className="badge-brand inline-flex">Perfil del equipo</p>
-            <h2 className="mt-3 text-3xl font-black text-white">{selectedUser.full_name || 'Colaborador sin nombre'}</h2>
-            <p className="mt-2 text-sm text-slate-400">Acceso creado desde {formatDate(selectedUser.created_at)}</p>
+            <h2 className="mt-3 text-3xl font-black text-[#14264F]">{selectedUser.full_name || 'Colaborador sin nombre'}</h2>
+            <p className="mt-2 text-sm text-slate-500">Acceso creado desde {formatDate(selectedUser.created_at)}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-black text-sky-300 ring-1 ring-sky-500/20">{roleLabel(selectedUser.role)}</span>
-              <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-300 ring-1 ring-violet-500/20">{positionLabel(selectedUser.position)}</span>
-              <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${selectedUser.status === 'inactive' ? 'bg-red-500/10 text-red-300 ring-red-500/20' : 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'}`}>{statusLabel(selectedUser.status)}</span>
+              <span className="rounded-full bg-[#0EA5E9]/10 px-3 py-1 text-xs font-black text-[#1E40AF] ring-1 ring-sky-500/20">{roleLabel(selectedUser.role)}</span>
+              <span className="rounded-full bg-[#14264F]/5 px-3 py-1 text-xs font-black text-[#1E40AF] ring-1 ring-violet-500/20">{positionLabel(selectedUser.position)}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${selectedUser.status === 'inactive' ? 'bg-red-500/10 text-red-300 ring-red-500/20' : 'bg-[#14264F]/10 text-[#0EA5E9] ring-emerald-500/20'}`}>{statusLabel(selectedUser.status)}</span>
             </div>
           </div>
 
           <div className="grid gap-4 p-5 sm:p-6 lg:grid-cols-2">
-            <div className="rounded-3xl border border-[#1e293b] bg-[#030712]/70 p-5">
+            <div className="rounded-3xl border border-slate-200 bg-white/70 p-5">
               <p className="text-xs font-black uppercase tracking-widest text-slate-500">Contacto</p>
               <div className="mt-4 space-y-3 text-sm">
-                <p className="flex items-center gap-3 text-slate-300"><Mail className="h-4 w-4 text-sky-300" /> {selectedUser.email || 'Sin correo'}</p>
-                <p className="flex items-center gap-3 text-slate-300"><Phone className="h-4 w-4 text-emerald-300" /> {selectedUser.phone || 'Sin WhatsApp'}</p>
+                <p className="flex items-center gap-3 text-slate-600"><Mail className="h-4 w-4 text-[#1E40AF]" /> {selectedUser.email || 'Sin correo'}</p>
+                <p className="flex items-center gap-3 text-slate-600"><Phone className="h-4 w-4 text-[#0EA5E9]" /> {selectedUser.phone || 'Sin WhatsApp'}</p>
               </div>
             </div>
-            <div className="rounded-3xl border border-[#1e293b] bg-[#030712]/70 p-5">
+            <div className="rounded-3xl border border-slate-200 bg-white/70 p-5">
               <p className="text-xs font-black uppercase tracking-widest text-slate-500">Rol y acceso</p>
               <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                <div><p className="text-slate-500">Rol</p><p className="font-bold text-white">{roleLabel(selectedUser.role)}</p></div>
-                <div><p className="text-slate-500">Puesto</p><p className="font-bold text-white">{positionLabel(selectedUser.position)}</p></div>
-                <div><p className="text-slate-500">Estado</p><p className="font-bold text-white">{statusLabel(selectedUser.status)}</p></div>
+                <div><p className="text-slate-500">Rol</p><p className="font-bold text-[#14264F]">{roleLabel(selectedUser.role)}</p></div>
+                <div><p className="text-slate-500">Puesto</p><p className="font-bold text-[#14264F]">{positionLabel(selectedUser.position)}</p></div>
+                <div><p className="text-slate-500">Estado</p><p className="font-bold text-[#14264F]">{statusLabel(selectedUser.status)}</p></div>
               </div>
             </div>
           </div>
@@ -205,7 +205,7 @@ export function CollaboratorsAdminManager({
           <input type="hidden" name="profile_id" value={selectedUser.id} />
           <div className="md:col-span-2 xl:col-span-3">
             <p className="badge-accent inline-flex">Editar colaborador</p>
-            <h2 className="mt-3 text-2xl font-black text-white">{selectedUser.full_name || 'Colaborador'}</h2>
+            <h2 className="mt-3 text-2xl font-black text-[#14264F]">{selectedUser.full_name || 'Colaborador'}</h2>
             <p className="mt-2 text-sm text-slate-500">Actualiza sus datos, rol o contraseña opcional.</p>
           </div>
           <input name="full_name" className="input" defaultValue={selectedUser.full_name || ''} placeholder="Nombre completo" required />
@@ -240,8 +240,8 @@ export function CollaboratorsAdminManager({
             <section className="card hidden p-5 sm:p-6 lg:block">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Equipo</p>
-            <h2 className="mt-1 text-2xl font-black text-white">Lista de colaboradores</h2>
+            <p className="text-sm font-bold uppercase tracking-widest text-[#0EA5E9]">Equipo</p>
+            <h2 className="mt-1 text-2xl font-black text-[#14264F]">Lista de colaboradores</h2>
             <p className="mt-2 text-sm text-slate-500">Busca, revisa, edita o elimina colaboradores y tour leaders.</p>
           </div>
           <button type="button" onClick={() => setMode({ type: 'create' })} className="btn-primary w-full sm:w-fit">
@@ -249,19 +249,19 @@ export function CollaboratorsAdminManager({
           </button>
         </div>
 
-        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#1e293b] bg-[#030712] px-4 py-3">
+        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
           <Search className="h-5 w-5 text-slate-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="w-full bg-transparent text-sm font-semibold text-white outline-none placeholder:text-slate-600"
+            className="w-full bg-transparent text-sm font-semibold text-[#14264F] outline-none placeholder:text-slate-600"
             placeholder="Buscar por nombre, correo, WhatsApp o rol..."
           />
         </div>
       </section>
 
       <section className="card overflow-hidden mobile-compact-list">
-        <div className="hidden grid-cols-[1.35fr_1fr_130px_140px_110px_250px] gap-4 border-b border-[#1e293b] px-5 py-4 text-xs font-black uppercase tracking-widest text-slate-500 lg:grid">
+        <div className="hidden grid-cols-[1.35fr_1fr_130px_140px_110px_250px] gap-4 border-b border-slate-200 px-5 py-4 text-xs font-black uppercase tracking-widest text-slate-500 lg:grid">
           <span>Colaborador</span>
           <span>Contacto</span>
           <span>Rol</span>
@@ -273,41 +273,41 @@ export function CollaboratorsAdminManager({
         {!filteredCollaborators.length ? (
           <div className="p-8 text-center">
             <UserCog className="mx-auto h-10 w-10 text-slate-600" />
-            <h3 className="mt-3 text-lg font-black text-white">No hay colaboradores</h3>
+            <h3 className="mt-3 text-lg font-black text-[#14264F]">No hay colaboradores</h3>
             <p className="mt-2 text-sm text-slate-500">Crea uno nuevo o busca con otro término.</p>
           </div>
         ) : null}
 
         <div className="divide-y divide-[#1e293b]">
           {filteredCollaborators.map((user) => (
-            <article key={user.id} className="mobile-compact-row grid gap-4 p-5 transition hover:bg-[#111827]/45 lg:grid-cols-[1.35fr_1fr_130px_140px_110px_250px] lg:items-center">
+            <article key={user.id} className="mobile-compact-row grid gap-4 p-5 transition hover:bg-slate-50/45 lg:grid-cols-[1.35fr_1fr_130px_140px_110px_250px] lg:items-center">
               <div className="min-w-0">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0EA5E9]/10 text-[#1E40AF] ring-1 ring-sky-500/20">
                     <BriefcaseBusiness className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="truncate text-base font-black text-white">{user.full_name || 'Colaborador sin nombre'}</h3>
+                    <h3 className="truncate text-base font-black text-[#14264F]">{user.full_name || 'Colaborador sin nombre'}</h3>
                     <p className="truncate text-xs font-semibold text-slate-500">Creado: {formatDate(user.created_at)}</p>
                   </div>
                 </div>
               </div>
-              <div className="mobile-list-secondary text-sm text-slate-300">
+              <div className="mobile-list-secondary text-sm text-slate-600">
                 <p className="truncate font-semibold">{user.email || 'Sin correo'}</p>
                 <p className="mt-1 truncate text-slate-500">{user.phone || 'Sin WhatsApp'}</p>
               </div>
               <div className="mobile-list-extra">
-                <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-black text-sky-300 ring-1 ring-sky-500/20">
+                <span className="rounded-full bg-[#0EA5E9]/10 px-3 py-1 text-xs font-black text-[#1E40AF] ring-1 ring-sky-500/20">
                   {roleLabel(user.role)}
                 </span>
               </div>
               <div className="mobile-list-position">
-                <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-300 ring-1 ring-violet-500/20">
+                <span className="rounded-full bg-[#14264F]/5 px-3 py-1 text-xs font-black text-[#1E40AF] ring-1 ring-violet-500/20">
                   {positionLabel(user.position)}
                 </span>
               </div>
               <div className="mobile-list-status">
-                <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${user.status === 'inactive' ? 'bg-red-500/10 text-red-300 ring-red-500/20' : 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'}`}>
+                <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${user.status === 'inactive' ? 'bg-red-500/10 text-red-300 ring-red-500/20' : 'bg-[#14264F]/10 text-[#0EA5E9] ring-emerald-500/20'}`}>
                   {statusLabel(user.status)}
                 </span>
               </div>

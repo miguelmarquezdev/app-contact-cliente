@@ -54,15 +54,20 @@ export default async function CollaboratorItinerariesPage() {
 
   return (
     <PageShell>
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-5 hidden flex-col justify-between gap-4 lg:flex lg:flex-row lg:items-center">
         <div>
-          <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Panel colaborador</p>
-          <h1 className="mt-1 text-3xl font-black text-white">Mis itinerarios asignados</h1>
+          <p className="text-sm font-bold uppercase tracking-widest text-[#1E40AF]">Panel colaborador</p>
+          <h1 className="mt-1 text-3xl font-black text-[#14264F]">Mis itinerarios asignados</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
             Aquí verás solo los días donde el administrador te asignó como colaborador o tour leader.
           </p>
         </div>
         <LogoutButton />
+      </div>
+
+      <div className="mb-5 lg:hidden">
+        <h1 className="text-[2rem] font-black leading-none text-slate-950">Mis días</h1>
+        <p className="mt-2 text-sm font-semibold leading-5 text-slate-500">Tus asignaciones y documentos.</p>
       </div>
 
       <CollaboratorItinerariesView itineraries={itineraries} />

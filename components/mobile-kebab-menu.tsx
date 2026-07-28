@@ -47,7 +47,7 @@ export function MobileKebabMenu({ className = '', buttonClassName = '' }: Mobile
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className={`flex h-11 w-11 items-center justify-center rounded-full bg-violet-500/14 text-violet-100 ring-1 ring-violet-400/10 transition active:scale-95 hover:bg-violet-500/22 ${buttonClassName}`}
+        className={`flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-[#14264F] ring-1 ring-slate-200 transition active:scale-95 hover:bg-slate-200 ${buttonClassName}`}
         aria-label="Abrir opciones"
         aria-expanded={open}
       >
@@ -55,13 +55,13 @@ export function MobileKebabMenu({ className = '', buttonClassName = '' }: Mobile
       </button>
 
       {open ? (
-        <div className="fixed right-4 top-[calc(4.5rem+env(safe-area-inset-top))] z-[80] w-56 overflow-hidden rounded-3xl border border-violet-400/12 bg-[#151322]/98 py-2 text-left shadow-2xl shadow-black/50 backdrop-blur-xl">
+        <div className="fixed right-4 top-[calc(4.5rem+env(safe-area-inset-top))] z-[80] w-56 overflow-hidden rounded-3xl border border-slate-200 bg-white/98 py-2 text-left shadow-2xl shadow-slate-300/60 backdrop-blur-xl">
           <button
             type="button"
             onClick={logout}
-            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-bold text-slate-100 transition hover:bg-white/[.06] active:bg-white/[.08]"
+            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-bold text-[#14264F] transition hover:bg-slate-50 active:bg-slate-100"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-red-500/10 text-red-300 ring-1 ring-red-400/10">
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-1 ring-red-100">
               <LogOut className="h-4 w-4" />
             </span>
             Cerrar sesión

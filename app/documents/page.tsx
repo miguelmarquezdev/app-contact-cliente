@@ -10,8 +10,8 @@ export default async function DocumentsPage() {
   return (
     <PageShell>
       <div className="mb-6">
-        <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Archivos</p>
-        <h1 className="text-3xl font-black text-white">Documentos</h1>
+        <p className="text-sm font-bold uppercase tracking-widest text-[#0EA5E9]">Archivos</p>
+        <h1 className="text-3xl font-black text-[#14264F]">Documentos</h1>
       </div>
 
       <form action={createDocumentLink} className="card mb-6 grid gap-4 p-6 md:grid-cols-5">
@@ -32,8 +32,8 @@ export default async function DocumentsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {documents?.map((doc) => (
           <a key={doc.id} href={doc.file_url} target="_blank" className="card block p-5 hover:border-emerald-300">
-            <p className="text-xs font-bold uppercase text-emerald-400">{doc.tours?.title}</p>
-            <h3 className="mt-1 font-black text-white">{doc.title}</h3>
+            <p className="text-xs font-bold uppercase text-[#0EA5E9]">{doc.tours?.title}</p>
+            <h3 className="mt-1 font-black text-[#14264F]">{doc.title}</h3>
             <p className="mt-2 text-sm text-slate-500">Visibilidad: {doc.visibility}</p>
           </a>
         ))}

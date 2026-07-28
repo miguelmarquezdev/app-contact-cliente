@@ -1,15 +1,17 @@
 import Link from 'next/link'
-import { LayoutDashboard, Users, Map, FileText, MessageCircle, Route, UserCog, User, ClipboardList, BriefcaseBusiness } from 'lucide-react'
+import { LayoutDashboard, Users, Map, FileText, MessageCircle, Route, UserCog, User, ClipboardList, BriefcaseBusiness, Hotel } from 'lucide-react'
 import { LogoutButton } from './logout-button'
+import { SunbeamLogo } from './sunbeam-logo'
 import { MobileBottomNav } from './mobile-bottom-nav'
 import { MobileAppHeader } from './mobile-app-header'
 import { createClient } from '@/lib/supabase-server'
 
 const adminItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/clients', label: 'Clientes', icon: Users },
+  { href: '/clients', label: 'Prospectos', icon: Users },
   { href: '/collaborators', label: 'Colaboradores', icon: UserCog },
   { href: '/tours', label: 'Tours', icon: Map },
+  { href: '/hotels', label: 'Hoteles', icon: Hotel },
   { href: '/itineraries', label: 'Itinerarios', icon: Route },
   { href: '/documents', label: 'Docs', icon: FileText },
   { href: '/chat', label: 'Chat', icon: MessageCircle }
@@ -39,27 +41,23 @@ export async function Sidebar({ hideMobileNav = false, hideMobileHeader = false 
   const isCollaborator = role === 'collaborator' || role === 'tour_leader'
   const items = isClient ? clientItems : isCollaborator ? collaboratorItems : adminItems
   const portalLabel = isClient ? 'Portal cliente' : isCollaborator ? 'Panel equipo' : 'Tour CRM'
-  const icon = isCollaborator ? <BriefcaseBusiness className="h-6 w-6" /> : <Route className="h-6 w-6" />
 
   return (
     <>
       {!hideMobileNav && !hideMobileHeader ? <MobileAppHeader role={role} /> : null}
 
-      <aside className="hidden min-h-screen w-72 border-r border-[#1e293b] bg-[#08111f]/95 p-6 shadow-2xl shadow-black/20 backdrop-blur lg:flex lg:flex-col">
-        <div className="mb-8 rounded-3xl border border-[#1e293b] bg-[#0b1220] p-5">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30">
-            {icon}
-          </div>
-          <p className="text-xs font-black uppercase tracking-widest text-sky-300">{portalLabel}</p>
-          <h1 className="mt-1 text-2xl font-black text-white">Happy Manager</h1>
+      <aside className="hidden min-h-screen w-72 border-r border-slate-200 bg-white p-5 shadow-[10px_0_30px_rgba(15,23,42,.04)] lg:flex lg:flex-col">
+        <div className="mb-7 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <SunbeamLogo />
+          <p className="mt-4 text-[11px] font-black uppercase tracking-[.18em] text-[#1E40AF]">{portalLabel}</p>
           {profile ? <p className="mt-2 truncate text-xs font-semibold text-slate-500">{profile.full_name || profile.email}</p> : null}
         </div>
         <nav className="flex-1 space-y-2">
           {items.map((item) => {
             const Icon = item.icon
             return (
-              <Link key={item.href} href={item.href} className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-300 transition hover:bg-sky-500/10 hover:text-sky-300 hover:shadow-lg hover:shadow-black/10">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#111827] text-slate-400 ring-1 ring-[#1e293b] transition group-hover:bg-sky-500/15 group-hover:text-sky-300 group-hover:ring-sky-500/30">
+              <Link key={item.href} href={item.href} className="group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 hover:text-[#14264F]">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50 text-[#1E40AF] ring-1 ring-slate-200 transition group-hover:bg-[#14264F] group-hover:text-white group-hover:ring-[#14264F]">
                   <Icon className="h-5 w-5" />
                 </span>
                 {item.label}
@@ -67,7 +65,7 @@ export async function Sidebar({ hideMobileNav = false, hideMobileHeader = false 
             )
           })}
         </nav>
-        <div className="border-t border-slate-800 pt-4">
+        <div className="border-t border-slate-200 pt-4">
           <LogoutButton variant="sidebar" />
         </div>
       </aside>

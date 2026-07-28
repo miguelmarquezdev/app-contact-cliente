@@ -3,15 +3,16 @@ import './globals.css'
 import { PWARegister } from '@/components/pwa-register'
 import { OfflineStatus } from '@/components/offline-status'
 import { OfflineNavigationGuard } from '@/components/offline-navigation-guard'
+import { RealtimeAppRefresh } from '@/components/realtime-app-refresh'
 
 export const metadata: Metadata = {
-  title: 'Happy Manager',
-  description: 'CRM turístico con itinerarios, clientes, documentos y chat.',
+  title: 'Sunbeam App',
+  description: 'CRM turístico de Sunbeam Journeys con itinerarios, prospectos, clientes, documentos y chat.',
   manifest: '/site.webmanifest',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Happy Manager'
+    statusBarStyle: 'default',
+    title: 'Sunbeam App'
   },
   icons: {
     icon: '/icons/icon-192.png',
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0a071d',
+  themeColor: '#14264F',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover'
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PWARegister />
         <OfflineNavigationGuard />
         <OfflineStatus />
+        <RealtimeAppRefresh />
       </body>
     </html>
   )

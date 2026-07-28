@@ -1,51 +1,59 @@
 import { PageShell } from '@/components/page-shell'
 import { createClient } from '@/lib/supabase-server'
-import { createTour } from './actions'
+import { createTour, deleteTour, updateTour } from './actions'
+import { ToursAdminManager } from '@/components/tours-admin-manager'
+
+type TourStop = {
+  id: string
+  place: string
+  duration: string | null
+  description: string | null
+  includes_ticket: boolean | null
+  order_index: number | null
+}
+
+type TourTemplate = {
+  id: string
+  title: string
+  code: string | null
+  route: string | null
+  description: string | null
+  category: string | null
+  price_amount: number | null
+  price_currency: string | null
+  duration: string | null
+  image_url: string | null
+  featured: boolean | null
+  default_food_notes: string | null
+  meal_types: string[] | null
+  meal_observations: Record<string, string> | null
+  status: string | null
+  created_at: string | null
+  tour_template_stops: TourStop[] | null
+}
 
 export default async function ToursPage() {
   const supabase = await createClient()
-  const { data: tours } = await supabase.from('tours').select('*').order('created_at', { ascending: false })
+  const { data: tours } = await supabase
+    .from('tours')
+    .select('id,title,code,route,description,category,price_amount,price_currency,duration,image_url,featured,default_food_notes,meal_types,meal_observations,status,created_at,tour_template_stops(id,place,duration,description,includes_ticket,order_index)')
+    .order('created_at', { ascending: false })
+    .returns<TourTemplate[]>()
 
   return (
     <PageShell>
-      <div className="mb-6">
-        <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Operaciones</p>
-        <h1 className="text-3xl font-black text-white">Tours</h1>
+      <div className="mb-6 hidden lg:block">
+        <p className="text-sm font-bold uppercase tracking-widest text-[#0EA5E9]">Tours base</p>
+        <h1 className="text-3xl font-black text-[#14264F]">Tours y catálogo</h1>
+        <p className="mt-2 max-w-3xl text-sm text-slate-500">Crea servicios con precio, duración, imagen, categoría, comidas y stops. También se muestran en el inicio del prospecto.</p>
       </div>
 
-      <form action={createTour} className="card mb-6 grid gap-4 p-6 md:grid-cols-5">
-        <input name="title" className="input md:col-span-2" placeholder="Nombre del tour" required />
-        <input name="code" className="input" placeholder="Código" />
-        <input name="start_date" className="input" type="date" />
-        <input name="end_date" className="input" type="date" />
-        <select name="status" className="input">
-          <option value="pending">Pendiente</option>
-          <option value="confirmed">Confirmado</option>
-          <option value="preparation">En preparación</option>
-          <option value="operating">En operación</option>
-          <option value="finished">Finalizado</option>
-          <option value="cancelled">Cancelado</option>
-        </select>
-        <button className="btn-primary md:col-span-4">Crear tour</button>
-      </form>
-
-      <div className="card overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[#111827] text-slate-300">
-            <tr><th className="p-4">Tour</th><th className="p-4">Código</th><th className="p-4">Inicio</th><th className="p-4">Estado</th></tr>
-          </thead>
-          <tbody>
-            {tours?.map((tour) => (
-              <tr key={tour.id} className="border-t border-[#1e293b]">
-                <td className="p-4 font-bold text-white">{tour.title}</td>
-                <td className="p-4">{tour.code || '-'}</td>
-                <td className="p-4">{tour.start_date || '-'}</td>
-                <td className="p-4"><span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-300">{tour.status}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ToursAdminManager
+        tours={tours || []}
+        createAction={createTour}
+        updateAction={updateTour}
+        deleteAction={deleteTour}
+      />
     </PageShell>
   )
 }

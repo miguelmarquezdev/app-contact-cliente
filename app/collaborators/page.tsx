@@ -19,8 +19,8 @@ export default async function CollaboratorsPage({ searchParams }: PageProps) {
   return (
     <PageShell>
       <div className="mb-6 hidden lg:block">
-        <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">Equipo</p>
-        <h1 className="text-3xl font-black text-white">Colaboradores</h1>
+        <p className="text-sm font-bold uppercase tracking-widest text-[#0EA5E9]">Equipo</p>
+        <h1 className="text-3xl font-black text-[#14264F]">Colaboradores</h1>
         <p className="mt-2 text-sm text-slate-500">Administra guías, operadores, conductores, asistentes y tour leaders.</p>
       </div>
 
@@ -31,7 +31,7 @@ export default async function CollaboratorsPage({ searchParams }: PageProps) {
       ) : null}
 
       {params?.success ? (
-        <div className="mb-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-300">
+        <div className="mb-5 rounded-2xl border border-[#14264F]/10 bg-[#14264F]/10 px-4 py-3 text-sm font-semibold text-[#0EA5E9]">
           {params.success}
         </div>
       ) : null}

@@ -21,8 +21,12 @@ type ExistingDayDocumentPayload = {
 type DayPayload = {
   title?: string
   route?: string
+  tour_template_id?: string
   food?: string
+  food_type?: string
+  food_description?: string
   hotel?: string
+  hotel_id?: string
   description?: string
   collaborator_ids?: string[]
   existing_documents?: ExistingDayDocumentPayload[]
@@ -110,8 +114,12 @@ async function saveDays(
         day_number: dayIndex + 1,
         title: dayTitle,
         route: clean(day.route),
-        food: clean(day.food),
+        tour_template_id: clean(day.tour_template_id),
+        food: clean(day.food_description) ? `${clean(day.food_type) || 'Comida'}: ${clean(day.food_description)}` : clean(day.food_type) || clean(day.food),
+        food_type: clean(day.food_type),
+        food_description: clean(day.food_description) || clean(day.food),
         hotel: clean(day.hotel),
+        hotel_id: clean(day.hotel_id),
         description: clean(day.description),
       })
       .select('id')
@@ -201,6 +209,7 @@ export async function createFullItinerary(formData: FormData) {
 export async function updateFullItinerary(formData: FormData) {
   const supabase = await createClient()
   const itineraryId = clean(formData.get('itinerary_id'))
+  const proposalVersionId = clean(formData.get('proposal_version_id'))
   const title = clean(formData.get('title'))
   const description = clean(formData.get('description'))
   const { data: { user } } = await supabase.auth.getUser()
@@ -229,6 +238,60 @@ export async function updateFullItinerary(formData: FormData) {
   }
 
   await saveDays(supabase, itineraryId, days, formData, user?.id)
+
+  if (proposalVersionId) {
+    const { data: version, error: versionError } = await supabase
+      .from('proposal_versions')
+      .select('id,client_id,itinerary_id,version_number,previous_assignment_id,admin_note,change_notes')
+      .eq('id', proposalVersionId)
+      .eq('itinerary_id', itineraryId)
+      .single()
+
+    if (versionError || !version) {
+      console.error('Error reading proposal version:', versionError)
+      redirect(`/itineraries/${itineraryId}/edit?proposal_version_id=${proposalVersionId}`)
+    }
+
+    if (version.previous_assignment_id) {
+      await supabase
+        .from('client_itineraries')
+        .update({ proposal_status: 'version_replaced' })
+        .eq('id', version.previous_assignment_id)
+    }
+
+    const { error: assignmentError } = await supabase
+      .from('client_itineraries')
+      .insert({
+        client_id: version.client_id,
+        itinerary_id: itineraryId,
+        assigned_by: user?.id || null,
+        note: version.admin_note || 'Te enviamos una nueva versión de la propuesta.',
+        proposal_status: 'sent',
+        version_number: version.version_number || 1,
+        sent_at: new Date().toISOString(),
+      })
+
+    if (assignmentError) {
+      console.error('Error sending proposal version:', assignmentError)
+      redirect(`/itineraries/${itineraryId}/edit?proposal_version_id=${proposalVersionId}`)
+    }
+
+    await supabase
+      .from('proposal_versions')
+      .update({ status: 'sent', sent_at: new Date().toISOString() })
+      .eq('id', proposalVersionId)
+
+    await supabase
+      .from('clients')
+      .update({ proposal_status: 'proposal_sent', lifecycle_status: 'prospect', updated_at: new Date().toISOString() })
+      .eq('id', version.client_id)
+
+    revalidatePath('/clients')
+    revalidatePath('/client/itineraries')
+    revalidatePath('/itineraries')
+    revalidatePath(`/itineraries/${itineraryId}/edit`)
+    redirect(`/clients?success=${encodeURIComponent(`Nueva versión V${version.version_number || 1} enviada al prospecto`)}`)
+  }
 
   revalidatePath('/itineraries')
   revalidatePath(`/itineraries/${itineraryId}/edit`)
@@ -269,12 +332,19 @@ export async function assignItineraryToClient(formData: FormData) {
       client_id: clientId,
       assigned_by: user?.id || null,
       note,
+      proposal_status: 'sent',
+      sent_at: new Date().toISOString(),
     }, { onConflict: 'client_id,itinerary_id' })
 
   if (error) {
     console.error('Error assigning itinerary:', error)
     redirect(`/itineraries?error=${encodeURIComponent(error.message)}`)
   }
+
+  await supabase
+    .from('clients')
+    .update({ proposal_status: 'proposal_sent', updated_at: new Date().toISOString() })
+    .eq('id', clientId)
 
   revalidatePath('/itineraries')
   redirect('/itineraries?success=Itinerario enviado al cliente')

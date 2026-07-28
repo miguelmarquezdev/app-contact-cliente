@@ -10,11 +10,13 @@ import {
   UserCog,
   FileText,
   Map,
+  Hotel,
   BriefcaseBusiness,
   Plus,
   Search
 } from 'lucide-react'
 import { MobileKebabMenu } from './mobile-kebab-menu'
+import { SunbeamLogo } from './sunbeam-logo'
 
 type MobileAppHeaderProps = {
   role?: string | null
@@ -37,8 +39,8 @@ const pageCopy = [
   },
   {
     match: (path: string) => path.startsWith('/clients'),
-    label: 'Pasajeros',
-    title: 'Clientes',
+    label: 'Pipeline',
+    title: 'Prospectos',
     icon: Users,
     chatHref: '/chat'
   },
@@ -54,6 +56,13 @@ const pageCopy = [
     label: 'Servicios',
     title: 'Tours',
     icon: Map,
+    chatHref: '/chat'
+  },
+  {
+    match: (path: string) => path.startsWith('/hotels'),
+    label: 'Alojamientos',
+    title: 'Hoteles',
+    icon: Hotel,
     chatHref: '/chat'
   },
   {
@@ -120,30 +129,35 @@ function fallbackByRole(role?: string | null) {
 export function MobileAppHeader({ role }: MobileAppHeaderProps) {
   const pathname = usePathname()
   const current = pageCopy.find((item) => item.match(pathname)) || fallbackByRole(role)
-  const canCreate = pathname.startsWith('/itineraries') || pathname.startsWith('/clients') || pathname.startsWith('/collaborators')
+  const canCreate = pathname.startsWith('/itineraries') || pathname.startsWith('/clients') || pathname.startsWith('/collaborators') || pathname.startsWith('/tours') || pathname.startsWith('/hotels')
   const canSearch = canCreate
   const placeholder = pathname.startsWith('/clients')
-    ? 'Buscar cliente...'
+    ? 'Buscar prospecto...'
     : pathname.startsWith('/collaborators')
       ? 'Buscar colaborador...'
-      : pathname.startsWith('/itineraries')
-        ? 'Buscar itinerario...'
-        : 'Buscar...'
+      : pathname.startsWith('/tours')
+        ? 'Buscar tour...'
+        : pathname.startsWith('/hotels')
+          ? 'Buscar hotel...'
+          : pathname.startsWith('/itineraries')
+            ? 'Buscar itinerario...'
+            : 'Buscar...'
 
   return (
-    <header className="sticky top-0 z-50 border-b border-violet-400/10 bg-[#080415]/96 px-4 pb-3 pt-[calc(.78rem+env(safe-area-inset-top))] shadow-xl shadow-black/30 backdrop-blur-xl lg:hidden">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/96 px-4 pb-2.5 pt-[calc(.65rem+env(safe-area-inset-top))] shadow-[0_6px_22px_rgba(15,23,42,.04)] backdrop-blur-xl lg:hidden">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 leading-none">
-          <h1 className="truncate text-2xl font-black text-white">{current.title}</h1>
+          <div className="flex items-center gap-3">
+            <SunbeamLogo compact />
+            <div className="min-w-0">
+              <p className="text-[9px] font-black uppercase tracking-[.18em] text-[#1E40AF]">{current.label}</p>
+              <h1 className="truncate text-[1.18rem] font-black leading-tight text-[#14264F]">{current.title}</h1>
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {canCreate ? (
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new CustomEvent('app:create'))}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-[#04110e] shadow-lg shadow-emerald-950/30 active:scale-95"
-              aria-label="Crear nuevo"
-            >
+            <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('app:create'))} className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#14264F] text-white shadow-sm active:scale-95" aria-label="Crear nuevo">
               <Plus className="h-5 w-5 stroke-[3]" />
             </button>
           ) : null}
@@ -151,14 +165,9 @@ export function MobileAppHeader({ role }: MobileAppHeaderProps) {
         </div>
       </div>
       {canSearch ? (
-        <div className="mt-3 flex items-center gap-3 rounded-full border border-violet-400/15 bg-[#171026]/85 px-4 py-3 shadow-inner shadow-black/20">
+        <div className="mt-2.5 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5">
           <Search className="h-5 w-5 shrink-0 text-slate-500" />
-          <input
-            type="search"
-            placeholder={placeholder}
-            onChange={(event) => window.dispatchEvent(new CustomEvent('app:search', { detail: event.target.value }))}
-            className="w-full bg-transparent text-sm font-bold text-white outline-none placeholder:text-slate-600"
-          />
+          <input type="search" placeholder={placeholder} onChange={(event) => window.dispatchEvent(new CustomEvent('app:search', { detail: event.target.value }))} className="w-full bg-transparent text-sm font-bold text-[#14264F] outline-none placeholder:text-slate-500" />
         </div>
       ) : null}
     </header>

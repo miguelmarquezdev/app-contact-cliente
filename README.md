@@ -191,7 +191,7 @@ Ejecuta en Supabase SQL Editor el archivo `supabase/migration-v19-collaborator-p
 
 ## Instalación en celular como app (PWA)
 
-Esta versión incluye soporte PWA para poder instalar Happy Manager en el celular.
+Esta versión incluye soporte PWA para poder instalar Sunbeam App en el celular.
 
 ### Android / Chrome
 1. Abre la app en Chrome.
@@ -203,7 +203,7 @@ Esta versión incluye soporte PWA para poder instalar Happy Manager en el celula
 1. Abre la app en Safari.
 2. Toca el botón Compartir.
 3. Elige “Agregar a pantalla de inicio”.
-4. Confirma el nombre Happy Manager.
+4. Confirma el nombre Sunbeam App.
 
 Nota: Para instalarla como app real, debe estar publicada en HTTPS, por ejemplo en Vercel. En local se puede probar con localhost, pero el uso normal en celular será desde la URL publicada.
 
@@ -253,3 +253,104 @@ Luego abre nuevamente el link en Chrome y espera unos segundos.
 - En modo offline, los enlaces internos fuerzan navegación normal para evitar que Next.js se quede esperando datos remotos.
 - El chat guarda sala, últimos mensajes, preview y orden de contactos en localStorage para lectura offline de conversaciones ya abiertas antes.
 - El chat sigue sin poder enviar mensajes sin internet; al volver la conexión recupera el modo realtime.
+
+## v47 - Tours base, hoteles y autollenado de itinerarios
+
+Ejecuta en Supabase SQL Editor:
+
+```txt
+supabase/migration-v47-tour-hotel-itinerary-templates.sql
+```
+
+Nuevas funciones:
+
+- En `/tours` ahora creas tours base con ruta, descripción, notas de comida y stops.
+- En `/hotels` registras hoteles/alojamientos para usarlos en los itinerarios.
+- En el constructor de itinerarios, en cada día el campo “Ruta o tour” permite seleccionar un tour base.
+- Al seleccionar un tour se llenan automáticamente título, ruta, descripción y stops.
+- La comida ahora tiene select: Desayuno, Almuerzo o Cena, más detalle de la comida.
+- El alojamiento permite seleccionar un hotel registrado y luego editar el texto del día.
+- Colaboradores y documentos por día siguen funcionando igual.
+
+
+## V50 - Mensajes de cambios visibles en admin
+
+- En `Prospectos > Ver` ahora se muestra una alerta cuando el prospecto solicita cambios.
+- Se agregó la sección **Respuestas del prospecto** con mensajes de cambios, rechazos y aceptaciones por itinerario.
+- En la lista de prospectos aparece un badge **Ver cambios** cuando hay una solicitud pendiente.
+- No requiere SQL nuevo si ya ejecutaste la migración v49.
+- TypeScript quedó fijado a `5.9.2` para evitar el error de TypeScript 7 con Next.js.
+
+
+## V51 - Flujo completo de propuestas y versiones
+
+Esta versión completa el flujo prospecto/cliente:
+
+1. El admin registra un prospecto y sus necesidades.
+2. El admin crea itinerario/cotización y lo envía como propuesta.
+3. El prospecto puede aceptar, rechazar o solicitar cambios desde su panel.
+4. Si solicita cambios, el admin ve el mensaje en el detalle del prospecto.
+5. El admin puede crear una nueva versión desde esa solicitud. El sistema clona el itinerario anterior, mantiene días, stops, documentos y colaboradores, y envía la V2/V3 al prospecto con mensaje de la agencia.
+6. La versión anterior queda marcada como reemplazada y el prospecto ve la nueva propuesta arriba.
+7. Si acepta, pasa a cliente y queda listo para pago/compromiso y operación.
+
+Ejecutar en Supabase si vienes de versiones anteriores:
+
+```sql
+-- SQL Editor → pegar supabase/migration-v51-proposal-version-flow.sql → Run
+```
+
+## v54 – Ajuste formal Sunbeam / ClickUp style
+
+- Se integró el logo original de Sunbeam en `public/brand/`.
+- Menos bordes exagerados: cards, botones e inputs quedan más formales.
+- Iconos con colores más visibles y consistentes: navy, cobalt, sky, green y danger.
+- Sidebar, header móvil y menú inferior se ven más tipo sistema SaaS/productividad.
+- Tema claro mantiene la paleta principal: `#14264F`, `#FFFFFF`, `#1E40AF`, `#0EA5E9`, `#E2E8F0`.
+
+
+## v56 - Imágenes de tours en Supabase Storage
+
+Ejecuta en Supabase SQL Editor:
+
+```sql
+-- archivo: supabase/migration-v56-tour-image-storage.sql
+```
+
+Esto crea el bucket público:
+
+```txt
+tour-images
+```
+
+Desde `Tours` ya puedes subir imágenes directamente desde tu computadora o celular. Formatos: JPG, PNG, WEBP. Tamaño máximo: 8 MB.
+
+
+## v61 - RLS de producción por rol y asignación
+
+Ejecutar en Supabase SQL Editor:
+
+```sql
+-- archivo: supabase/migration-v61-production-rls.sql
+```
+
+Antes de ejecutarlo, asegúrate de que tu usuario principal tenga:
+
+```sql
+update public.profiles
+set role = 'admin', position = 'Superadmin'
+where email = 'TU-CORREO@DOMINIO.COM';
+```
+
+RLS ahora separa acceso para:
+- Admin / Superadmin
+- Ventas / Reservas / Counter
+- Operaciones / Soporte
+- Tour Leader / Colaborador / Guía / Conductor
+- Prospecto / Cliente
+
+Si alguna vista queda bloqueada mientras ajustamos permisos, existe un rollback temporal:
+
+```sql
+-- archivo: supabase/migration-v61-rollback-open-mvp.sql
+```
