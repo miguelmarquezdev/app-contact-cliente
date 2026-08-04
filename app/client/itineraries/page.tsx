@@ -54,6 +54,7 @@ type Assignment = {
     id: string
     title: string
     description: string | null
+    image_url?: string | null
     itinerary_days: Day[] | null
   } | null
 }
@@ -67,7 +68,7 @@ export default async function ClientItinerariesPage({ searchParams }: { searchPa
   const { data: assignments } = client?.id
     ? await supabase
         .from('client_itineraries')
-        .select('id,note,proposal_status,version_number,requested_changes,rejection_reason,created_at,sent_at,responded_at,accepted_at,itineraries(id,title,description,itinerary_days(id,day_number,title,route,food,hotel,description,itinerary_stops(id,place,title,duration,description,includes_ticket,order_index),itinerary_day_documents(id,title,file_url,file_type),itinerary_day_collaborators(id,profiles(id,full_name,email,role,position))))')
+        .select('id,note,proposal_status,version_number,requested_changes,rejection_reason,created_at,sent_at,responded_at,accepted_at,itineraries(id,title,description,image_url,itinerary_days(id,day_number,title,route,food,hotel,description,itinerary_stops(id,place,title,duration,description,includes_ticket,order_index),itinerary_day_documents(id,title,file_url,file_type),itinerary_day_collaborators(id,profiles(id,full_name,email,role,position))))')
         .eq('client_id', client.id)
         .order('created_at', { ascending: false })
         .returns<Assignment[]>()

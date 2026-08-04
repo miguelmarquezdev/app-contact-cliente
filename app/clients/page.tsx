@@ -1,7 +1,7 @@
 import { PageShell } from '@/components/page-shell'
 import { createClient } from '@/lib/supabase-server'
 import { ClientsAdminManager } from '@/components/clients-admin-manager'
-import { createClientRecord, createNewProposalVersion, deleteClientRecord, updateClientRecord } from './actions'
+import { completeOperationTask, createClientRecord, createNewProposalVersion, deleteClientRecord, updateClientRecord } from './actions'
 
 type PageProps = {
   searchParams?: Promise<{ error?: string; success?: string }>
@@ -12,7 +12,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
   const supabase = await createClient()
   const { data: clients } = await supabase
     .from('clients')
-    .select('*, profiles(*), client_itineraries(id,note,proposal_status,version_number,requested_changes,rejection_reason,created_at,sent_at,responded_at,accepted_at,itineraries(id,title))')
+    .select('*, profiles(*), client_itineraries(id,note,proposal_status,version_number,requested_changes,rejection_reason,created_at,sent_at,responded_at,accepted_at,itineraries(id,title)),operation_tasks(id,title,description,status,priority,due_date,created_at,completed_at)')
     .order('created_at', { ascending: false })
 
   return (
@@ -41,6 +41,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
         updateAction={updateClientRecord}
         deleteAction={deleteClientRecord}
         createVersionAction={createNewProposalVersion}
+        completeTaskAction={completeOperationTask}
       />
     </PageShell>
   )

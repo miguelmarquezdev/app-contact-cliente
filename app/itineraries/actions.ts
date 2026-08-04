@@ -57,6 +57,39 @@ function safeFileName(name: string) {
     .toLowerCase()
 }
 
+async function uploadItineraryImage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  formData: FormData,
+  itineraryId: string
+) {
+  const existingImageUrl = clean(formData.get('existing_image_url'))
+  const image = formData.get('itinerary_image')
+
+  if (!(image instanceof File) || image.size <= 0) return existingImageUrl
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(image.type)) return existingImageUrl
+  if (image.size > 8 * 1024 * 1024) return existingImageUrl
+
+  const fileName = safeFileName(image.name || 'itinerary-image.webp')
+  const filePath = `${itineraryId}/${Date.now()}-${crypto.randomUUID()}-${fileName}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('itinerary-images')
+    .upload(filePath, image, { contentType: image.type, upsert: false })
+
+  if (uploadError) {
+    console.error('Error uploading itinerary image:', uploadError)
+    return existingImageUrl
+  }
+
+  const { data: publicUrl } = supabase.storage
+    .from('itinerary-images')
+    .getPublicUrl(filePath)
+
+  return publicUrl.publicUrl || existingImageUrl
+}
+
+
 async function uploadDayDocuments(
   supabase: Awaited<ReturnType<typeof createClient>>,
   formData: FormData,
@@ -200,6 +233,11 @@ export async function createFullItinerary(formData: FormData) {
     redirect('/itineraries')
   }
 
+  const imageUrl = await uploadItineraryImage(supabase, formData, itinerary.id)
+  if (imageUrl) {
+    await supabase.from('itineraries').update({ image_url: imageUrl, updated_at: new Date().toISOString() }).eq('id', itinerary.id)
+  }
+
   await saveDays(supabase, itinerary.id, days, formData, user?.id)
 
   revalidatePath('/itineraries')
@@ -217,9 +255,11 @@ export async function updateFullItinerary(formData: FormData) {
 
   if (!itineraryId || !title) redirect('/itineraries')
 
+  const imageUrl = await uploadItineraryImage(supabase, formData, itineraryId)
+
   const { error: itineraryError } = await supabase
     .from('itineraries')
-    .update({ title, description })
+    .update({ title, description, image_url: imageUrl, updated_at: new Date().toISOString() })
     .eq('id', itineraryId)
 
   if (itineraryError) {

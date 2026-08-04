@@ -77,5 +77,10 @@ export async function updateCollaboratorProfile(formData: FormData) {
     .eq('id', user.id)
 
   revalidatePath('/collaborator/profile')
+  revalidatePath('/collaborator/dashboard')
+  revalidatePath('/collaborator/chat')
+  revalidatePath('/chat')
+  revalidatePath('/clients')
+  revalidatePath('/collaborators')
   redirect('/collaborator/profile?success=Datos actualizados')
 }

@@ -6,6 +6,7 @@ type Contact = {
   id: string
   full_name: string | null
   email: string | null
+  avatar_url?: string | null
   role: string | null
   position?: string | null
 }
@@ -13,7 +14,8 @@ type Contact = {
 type ClientAssignment = {
   clients: {
     profile_id: string
-    profiles: Contact | null
+    lifecycle_status?: string | null
+    profiles: Contact | Contact[] | null
   } | null
 }
 
@@ -24,7 +26,7 @@ export default async function CollaboratorChatPage() {
 
   const { data: teamContacts } = await supabase
     .from('profiles')
-    .select('id, full_name, email, role, position')
+    .select('id, full_name, email, avatar_url, role, position')
     .in('role', ['admin', 'tour_leader', 'collaborator'])
     .eq('status', 'active')
     .neq('id', user?.id || '')
@@ -47,13 +49,14 @@ export default async function CollaboratorChatPage() {
   const { data: clientAssignments } = itineraryIds.length
     ? await supabase
         .from('client_itineraries')
-        .select('clients(profile_id,profiles(id,full_name,email,role,position))')
+        .select('clients(profile_id,lifecycle_status,profiles(id,full_name,email,avatar_url,role,position))')
         .in('itinerary_id', itineraryIds)
         .returns<ClientAssignment[]>()
     : { data: [] as ClientAssignment[] }
 
   const clientContacts = (clientAssignments || [])
-    .map((item) => item.clients?.profiles)
+    .filter((item) => item.clients?.lifecycle_status === 'client')
+    .map((item) => Array.isArray(item.clients?.profiles) ? item.clients?.profiles[0] : item.clients?.profiles)
     .filter(Boolean) as Contact[]
 
   const contactsMap = new Map<string, Contact>()

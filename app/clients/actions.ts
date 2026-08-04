@@ -12,6 +12,35 @@ function goWithError(message: string) {
   redirect(`/clients?error=${encodeURIComponent(message)}`)
 }
 
+const DEFAULT_OPERATION_TASKS = [
+  'Crear expediente operativo del viaje',
+  'Solicitar documentos finales del cliente',
+  'Confirmar reservas de hoteles y servicios',
+  'Confirmar tickets, trenes o ingresos necesarios',
+  'Asignar guía, conductor y colaboradores',
+  'Abrir chats operativos con el equipo asignado',
+  'Revisar checklist final antes de la operación'
+]
+
+async function ensureOperationTasks(supabaseAdmin: ReturnType<typeof createAdminClient>, clientId: string, createdBy?: string | null) {
+  const { count } = await supabaseAdmin
+    .from('operation_tasks')
+    .select('*', { count: 'exact', head: true })
+    .eq('client_id', clientId)
+
+  if ((count || 0) > 0) return
+
+  await supabaseAdmin.from('operation_tasks').insert(
+    DEFAULT_OPERATION_TASKS.map((title, index) => ({
+      client_id: clientId,
+      title,
+      priority: index <= 1 ? 'high' : 'normal',
+      status: 'pending',
+      created_by: createdBy || null,
+    }))
+  )
+}
+
 export async function createClientRecord(formData: FormData) {
   const supabaseAdmin = createAdminClient()
 
@@ -64,7 +93,9 @@ export async function createClientRecord(formData: FormData) {
     lifecycle_status: 'prospect',
     proposal_status: travel_needs ? 'needs_registered' : 'new',
     payment_status: 'pending',
-    payment_currency: 'USD'
+    payment_currency: 'USD',
+    reservation_policy_accepted: false,
+    operation_stage: 'commercial'
   })
 
   if (clientError) {
@@ -98,6 +129,7 @@ export async function updateClientRecord(formData: FormData) {
   const payment_amount = payment_amount_raw ? Number(payment_amount_raw) : null
   const payment_currency = clean(formData.get('payment_currency')) || 'USD'
   const payment_reference = clean(formData.get('payment_reference'))
+  const reservation_policy_accepted = formData.get('reservation_policy_accepted') === 'on'
   const status = clean(formData.get('status')) || 'active'
 
   if (!clientId || !profileId || !full_name || !email) {
@@ -121,6 +153,18 @@ export async function updateClientRecord(formData: FormData) {
 
   if (profileError) goWithError(profileError.message)
 
+  const canConvertToClient =
+    lifecycle_status === 'client' ||
+    (
+      reservation_policy_accepted &&
+      payment_status === 'confirmed' &&
+      ['accepted', 'payment_registered', 'documents_requested', 'reservations_confirmed', 'collaborators_assigned', 'operating', 'completed'].includes(proposal_status)
+    )
+
+  const nextLifecycleStatus = canConvertToClient ? 'client' : 'prospect'
+  const nextProposalStatus = canConvertToClient && proposal_status === 'accepted' ? 'payment_registered' : proposal_status
+  const now = new Date().toISOString()
+
   const { error: clientError } = await supabaseAdmin
     .from('clients')
     .update({
@@ -129,21 +173,29 @@ export async function updateClientRecord(formData: FormData) {
       travel_needs,
       notes_internal,
       rejection_reason,
-      lifecycle_status,
-      proposal_status: lifecycle_status === 'client' && proposal_status === 'accepted' ? 'payment_registered' : proposal_status,
+      lifecycle_status: nextLifecycleStatus,
+      proposal_status: nextProposalStatus,
       payment_status,
       payment_method,
       payment_provider,
       payment_amount,
       payment_currency,
       payment_reference,
-      accepted_at: lifecycle_status === 'client' ? new Date().toISOString() : null,
-      rejected_at: proposal_status === 'rejected' ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
+      reservation_policy_accepted,
+      operation_stage: nextLifecycleStatus === 'client' ? (nextProposalStatus === 'operating' ? 'operating' : nextProposalStatus === 'completed' ? 'completed' : 'preparation') : 'commercial',
+      accepted_at: nextLifecycleStatus === 'client' ? now : null,
+      file_created_at: nextLifecycleStatus === 'client' ? now : null,
+      operation_started_at: nextLifecycleStatus === 'client' ? now : null,
+      rejected_at: proposal_status === 'rejected' ? now : null,
+      updated_at: now,
     })
     .eq('id', clientId)
 
   if (clientError) goWithError(clientError.message)
+
+  if (canConvertToClient) {
+    await ensureOperationTasks(supabaseAdmin, clientId, profileId)
+  }
 
   if (payment_status !== 'pending' && payment_amount && payment_amount > 0) {
     await supabaseAdmin.from('payments').insert({
@@ -209,7 +261,7 @@ export async function createNewProposalVersion(formData: FormData) {
 
   const { data: sourceItinerary, error: itineraryError } = await supabaseAdmin
     .from('itineraries')
-    .select('id,title,description,itinerary_days(id,day_number,title,route,tour_template_id,food,food_type,food_description,hotel,hotel_id,description,itinerary_stops(id,place,title,duration,description,includes_ticket,order_index),itinerary_day_documents(id,title,file_url,file_path,file_type),itinerary_day_collaborators(id,collaborator_id))')
+    .select('id,title,description,image_url,itinerary_days(id,day_number,title,route,tour_template_id,food,food_type,food_description,hotel,hotel_id,description,itinerary_stops(id,place,title,duration,description,includes_ticket,order_index),itinerary_day_documents(id,title,file_url,file_path,file_type),itinerary_day_collaborators(id,collaborator_id))')
     .eq('id', currentAssignment.itinerary_id)
     .single()
 
@@ -225,6 +277,7 @@ export async function createNewProposalVersion(formData: FormData) {
     .insert({
       title: `${cleanTitle} · V${nextVersion}`,
       description: sourceItinerary.description,
+      image_url: sourceItinerary.image_url || null,
     })
     .select('id')
     .single()
@@ -315,4 +368,31 @@ export async function createNewProposalVersion(formData: FormData) {
   revalidatePath('/clients')
   revalidatePath('/itineraries')
   redirect(`/itineraries/${newItinerary.id}/edit?proposal_version_id=${version.id}`)
+}
+
+
+export async function completeOperationTask(formData: FormData) {
+  const supabaseAdmin = createAdminClient()
+
+  const taskId = clean(formData.get('task_id'))
+  const clientId = clean(formData.get('client_id'))
+  const nextStatus = clean(formData.get('next_status')) || 'done'
+
+  if (!taskId || !clientId) {
+    redirect('/clients?error=Faltan datos para actualizar la tarea')
+  }
+
+  const { error } = await supabaseAdmin
+    .from('operation_tasks')
+    .update({
+      status: nextStatus,
+      completed_at: nextStatus === 'done' ? new Date().toISOString() : null,
+    })
+    .eq('id', taskId)
+    .eq('client_id', clientId)
+
+  if (error) goWithError(error.message)
+
+  revalidatePath('/clients')
+  redirect('/clients?success=Tarea operativa actualizada')
 }

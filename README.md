@@ -364,3 +364,60 @@ Deployment should use npm:
 Install Command: npm install --no-audit --no-fund --legacy-peer-deps
 Build Command: npm run build
 ```
+
+
+## v66 - Prospecto a cliente + panel operativo
+
+Ejecutar en Supabase SQL Editor:
+
+```sql
+-- archivo: supabase/migration-v66-client-operation-panel.sql
+```
+
+Cambios:
+- Prospecto no ve ni puede abrir chat operativo.
+- El chat se habilita solo cuando `lifecycle_status = client`.
+- Se agregó aceptación de políticas de reserva.
+- Conversión recomendada: propuesta aceptada + políticas aceptadas + pago confirmado.
+- Al convertir a cliente se genera un checklist operativo en `operation_tasks`.
+- En el detalle del cliente aparece el panel operativo para controlar preparación, reservas, documentos, colaboradores y chats.
+
+## v67 - UI colaboradores, avatares, chat e imagen de itinerario
+
+Ejecutar en Supabase SQL Editor:
+
+```sql
+-- archivo: supabase/migration-v67-avatars-itinerary-images.sql
+```
+
+Cambios:
+- El admin ahora ve la foto/avatar actualizado de prospectos, clientes y colaboradores.
+- Lista de colaboradores sin líneas oscuras; separadores suaves tipo lista profesional.
+- Botones de acción: ver azul, editar ámbar, eliminar rojo.
+- Estado activo/inactivo con colores definidos.
+- Chat muestra solo hora si es hoy; si es de otro día, muestra fecha y hora.
+- Itinerarios con imagen principal, preview antes de guardar y botón en estado "Guardando...".
+- Lista de itinerarios minimalista con imagen, título y campanita animada si hay solicitud de cambios.
+
+## v70 - Force itinerary UI refresh
+
+This version keeps proposal sending only inside itinerary detail and makes the create form explicitly show "Crear itinerario base" when operational fields are hidden.
+If Vercel still shows old UI, redeploy with "Clear build cache".
+
+## v71 - Chat operativo y botones con carga
+
+Cambios:
+- Prospectos ya no aparecen en listas de chat.
+- Solo clientes confirmados aparecen en chat operativo.
+- Avatar actualizado de clientes/colaboradores se muestra en chat.
+- Fechas de lista de chat: hora hoy, Ayer, día de semana o fecha completa.
+- Enviar propuesta y Quitar muestran estado de carga.
+
+## v72 - UX sin recarga en propuestas y avatar en chat
+
+Cambios principales:
+- Enviar/quitar propuesta de itinerario usa API client-side, actualiza el panel sin recargar toda la app.
+- Botones muestran Enviando... / Quitando... con spinner real.
+- El chat refresca avatar_url, nombre y rol de contactos desde profiles para mostrar fotos actualizadas.
+- La API de chat bloquea abrir sala con prospectos; solo clientes confirmados pueden estar en chat operativo.
+- Al actualizar avatar del cliente/colaborador se revalidan paneles y chats relacionados.

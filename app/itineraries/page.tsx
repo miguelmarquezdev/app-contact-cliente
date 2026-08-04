@@ -46,16 +46,22 @@ type Itinerary = {
   id: string
   title: string
   description: string | null
+  image_url?: string | null
+  updated_at?: string | null
   itinerary_days: Day[] | null
   client_itineraries?: {
     id: string
     note: string | null
+    proposal_status?: string | null
+    version_number?: number | null
     clients: { id: string; profiles: { full_name: string | null; email: string | null } | null } | null
   }[] | null
 }
 
 type ClientOption = {
   id: string
+  lifecycle_status?: string | null
+  proposal_status?: string | null
   profiles: { full_name: string | null; email: string | null } | null
 }
 
@@ -98,7 +104,7 @@ export default async function ItinerariesPage() {
   const supabase = await createClient()
   const { data: itineraries } = await supabase
     .from('itineraries')
-    .select('id,title,description,created_at,itinerary_days(id,day_number,title,route,tour_template_id,food,food_type,food_description,hotel,hotel_id,description,itinerary_stops(id,place,title,duration,description,includes_ticket,order_index),itinerary_day_documents(id,title,file_url,file_type),itinerary_day_collaborators(id,profiles(id,full_name,email,role,position))),client_itineraries(id,note,proposal_status,version_number,clients(id,lifecycle_status,proposal_status,profiles(full_name,email)))')
+    .select('id,title,description,image_url,created_at,updated_at,itinerary_days(id,day_number,title,route,tour_template_id,food,food_type,food_description,hotel,hotel_id,description,itinerary_stops(id,place,title,duration,description,includes_ticket,order_index),itinerary_day_documents(id,title,file_url,file_type),itinerary_day_collaborators(id,profiles(id,full_name,email,role,position))),client_itineraries(id,note,proposal_status,version_number,clients(id,lifecycle_status,proposal_status,profiles(full_name,email)))')
     .order('created_at', { ascending: false })
     .returns<Itinerary[]>()
 

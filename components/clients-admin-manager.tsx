@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, BadgeDollarSign, CheckCircle2, Clock3, Eye, Mail, MessageSquareText, Pencil, Phone, Plus, Search, Trash2, UserRound } from 'lucide-react'
+import { ArrowLeft, BadgeDollarSign, CheckCircle2, Clock3, Eye, Mail, MessageSquareText, Pencil, Phone, Plus, Search, Trash2, UserRound, ListChecks } from 'lucide-react'
 
 type Profile = {
   id: string
   full_name: string | null
   email: string | null
   phone: string | null
+  avatar_url?: string | null
   role: string | null
   status: string | null
   created_at?: string | null
@@ -28,6 +29,17 @@ type ClientProposalAssignment = {
   itineraries?: { id: string; title: string | null } | null
 }
 
+type OperationTask = {
+  id: string
+  title: string
+  description?: string | null
+  status?: string | null
+  priority?: string | null
+  due_date?: string | null
+  created_at?: string | null
+  completed_at?: string | null
+}
+
 type ClientItem = {
   id: string
   profile_id: string
@@ -44,9 +56,14 @@ type ClientItem = {
   payment_amount?: number | null
   payment_currency?: string | null
   payment_reference?: string | null
+  reservation_policy_accepted?: boolean | null
+  operation_stage?: string | null
+  operation_started_at?: string | null
+  file_created_at?: string | null
   created_at?: string | null
   profiles: Profile | null
   client_itineraries?: ClientProposalAssignment[] | null
+  operation_tasks?: OperationTask[] | null
 }
 
 type ActionFn = (formData: FormData) => void | Promise<void>
@@ -95,6 +112,22 @@ function paymentLabel(status?: string | null) {
   return 'Pago pendiente'
 }
 
+function operationLabel(stage?: string | null) {
+  if (stage === 'preparation') return 'Preparación'
+  if (stage === 'operating') return 'En operación'
+  if (stage === 'completed') return 'Completado'
+  return 'Comercial'
+}
+
+function canOperate(client: ClientItem) {
+  return client.lifecycle_status === 'client'
+}
+
+function conversionReady(client: ClientItem) {
+  const proposalOk = ['accepted', 'payment_registered', 'documents_requested', 'reservations_confirmed', 'collaborators_assigned', 'operating', 'completed'].includes(client.proposal_status || '')
+  return proposalOk && client.reservation_policy_accepted && client.payment_status === 'confirmed'
+}
+
 function formatDate(value?: string | null) {
   if (!value) return 'No registrado'
   try {
@@ -116,7 +149,7 @@ function DeleteClientButton({ client, action }: { client: ClientItem; action: Ac
     >
       <input type="hidden" name="client_id" value={client.id} />
       <input type="hidden" name="profile_id" value={client.profile_id} />
-      <button className="btn-danger w-full py-2.5 sm:w-auto" title="Eliminar">
+      <button className="inline-flex w-full items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-black text-red-600 transition hover:bg-red-50 sm:w-auto" title="Eliminar">
         <Trash2 className="mr-2 inline h-4 w-4" /> Eliminar
       </button>
     </form>
@@ -129,12 +162,14 @@ export function ClientsAdminManager({
   updateAction,
   deleteAction,
   createVersionAction,
+  completeTaskAction,
 }: {
   clients: ClientItem[]
   createAction: ActionFn
   updateAction: ActionFn
   deleteAction: ActionFn
   createVersionAction: ActionFn
+  completeTaskAction: ActionFn
 }) {
   const [mode, setMode] = useState<Mode>({ type: 'list' })
   const [query, setQuery] = useState('')
@@ -277,11 +312,11 @@ export function ClientsAdminManager({
 
         <section className="card overflow-hidden mobile-compact-list">
           <div className="border-b border-slate-200 bg-gradient-to-r from-emerald-500/10 via-[#0b1220] to-violet-500/10 p-6">
-            <p className="badge-brand inline-flex">{lifecycleLabel(selectedClient.lifecycle_status)}</p>
+            <div className="flex items-center gap-4"><div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">{profile?.avatar_url ? <img src={profile.avatar_url} alt={profile.full_name || 'Cliente'} className="h-full w-full object-cover" /> : <UserRound className="h-7 w-7" />}</div><p className="badge-brand inline-flex">{lifecycleLabel(selectedClient.lifecycle_status)}</p></div>
             <h2 className="mt-3 text-2xl font-black text-[#14264F] sm:text-3xl">{profile?.full_name || 'Prospecto sin nombre'}</h2>
             <p className="mt-2 text-sm text-slate-500">Registrado desde {formatDate(selectedClient.created_at)}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-[#14264F]/10 px-3 py-1 text-xs font-black text-[#0EA5E9] ring-1 ring-emerald-500/20">{statusLabel(profile?.status)}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${profile?.status === 'inactive' ? 'bg-[#E5E7EB] text-[#6B7280] hover:bg-[#D1D5DB] ring-transparent' : 'bg-[#22C55E] text-white hover:bg-[#16A34A] ring-transparent'}`}>{statusLabel(profile?.status)}</span>
               <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${isClient ? 'bg-[#0EA5E9]/10 text-[#1E40AF] ring-sky-500/20' : 'bg-[#14264F]/5 text-[#1E40AF] ring-violet-500/20'}`}>{lifecycleLabel(selectedClient.lifecycle_status)}</span>
               <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-600 ring-1 ring-slate-200">{proposalLabel(selectedClient.proposal_status)}</span>
             </div>
@@ -342,6 +377,64 @@ export function ClientsAdminManager({
               </div>
               {selectedClient.payment_reference ? <p className="mt-3 text-xs font-semibold text-slate-500">Referencia: {selectedClient.payment_reference}</p> : null}
             </div>
+            <div className="rounded-3xl border border-slate-200 bg-white/70 p-5 lg:col-span-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-500">Conversión a cliente</p>
+                  <h3 className="mt-1 text-lg font-black text-[#14264F]">Condiciones comerciales</h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">El prospecto recién pasa a operación cuando acepta propuesta, políticas y el pago queda confirmado.</p>
+                </div>
+                <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${conversionReady(selectedClient) ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                  {conversionReady(selectedClient) ? 'Listo para operar' : 'Pendiente'}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <div className={`rounded-2xl p-3 ${['accepted','payment_registered','documents_requested','reservations_confirmed','collaborators_assigned','operating','completed'].includes(selectedClient.proposal_status || '') ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'}`}>
+                  <p className="text-xs font-black">Propuesta aceptada</p>
+                </div>
+                <div className={`${selectedClient.reservation_policy_accepted ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'} rounded-2xl p-3`}>
+                  <p className="text-xs font-black">Políticas aceptadas</p>
+                </div>
+                <div className={`${selectedClient.payment_status === 'confirmed' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'} rounded-2xl p-3`}>
+                  <p className="text-xs font-black">Pago confirmado</p>
+                </div>
+              </div>
+            </div>
+            {canOperate(selectedClient) ? (
+              <div className="rounded-3xl border border-[#14264F]/10 bg-white p-5 lg:col-span-2">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#1E40AF]"><ListChecks className="h-4 w-4" /> Panel operativo</p>
+                    <h3 className="mt-1 text-xl font-black text-[#14264F]">Seguimiento del viaje</h3>
+                    <p className="mt-1 text-sm leading-6 text-slate-500">Aquí operaciones prepara el expediente, reservas, documentos, equipo y chats operativos.</p>
+                  </div>
+                  <span className="w-fit rounded-full bg-[#14264F] px-3 py-1 text-xs font-black text-white">{operationLabel(selectedClient.operation_stage)}</span>
+                </div>
+                <div className="mt-4 space-y-2">
+                  {(selectedClient.operation_tasks || []).length ? (selectedClient.operation_tasks || []).map((task) => {
+                    const done = task.status === 'done'
+                    return (
+                      <div key={task.id} className={`flex items-center justify-between gap-3 rounded-2xl px-3 py-3 ${done ? 'bg-emerald-50' : 'bg-slate-50'}`}>
+                        <div className="min-w-0">
+                          <p className={`truncate text-sm font-bold ${done ? 'text-emerald-700 line-through decoration-emerald-600/50' : 'text-[#14264F]'}`}>{task.title}</p>
+                          {task.description ? <p className="mt-1 truncate text-xs font-medium text-slate-500">{task.description}</p> : null}
+                        </div>
+                        <form action={completeTaskAction} className="shrink-0">
+                          <input type="hidden" name="task_id" value={task.id} />
+                          <input type="hidden" name="client_id" value={selectedClient.id} />
+                          <input type="hidden" name="next_status" value={done ? 'pending' : 'done'} />
+                          <button className={`rounded-full px-3 py-1.5 text-[11px] font-black ${done ? 'bg-white text-slate-500' : 'bg-[#14264F] text-white'}`}>
+                            {done ? 'Reabrir' : 'Listo'}
+                          </button>
+                        </form>
+                      </div>
+                    )
+                  }) : (
+                    <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">Aún no se generaron tareas. Al convertirlo a cliente se crea el checklist operativo.</p>
+                  )}
+                </div>
+              </div>
+            ) : null}
             {selectedClient.rejection_reason ? (
               <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-5 lg:col-span-2">
                 <p className="text-xs font-black uppercase tracking-widest text-red-300">Motivo de rechazo</p>
@@ -436,6 +529,13 @@ export function ClientsAdminManager({
             <option value="PEN">PEN</option>
           </select>
           <input name="payment_reference" className="input" defaultValue={selectedClient.payment_reference || ''} placeholder="Referencia / operación / nota" />
+          <label className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold text-[#14264F]">
+            <input name="reservation_policy_accepted" type="checkbox" defaultChecked={Boolean(selectedClient.reservation_policy_accepted)} className="h-4 w-4 accent-[#14264F]" />
+            Políticas de reserva aceptadas
+          </label>
+          <div className="rounded-2xl bg-sky-50 px-4 py-3 text-xs font-semibold leading-5 text-[#1E40AF] md:col-span-2 xl:col-span-3">
+            Conversión automática: propuesta aceptada + políticas aceptadas + pago confirmado = cliente operativo con checklist.
+          </div>
           <select name="status" className="input" defaultValue={profile?.status || 'active'}>
             <option value="active">Activo</option>
             <option value="inactive">Inactivo</option>
@@ -503,7 +603,7 @@ export function ClientsAdminManager({
           </div>
         ) : null}
 
-        <div className="divide-y divide-[#1e293b]">
+        <div className="divide-y divide-slate-100">
           {filteredClients.map((client) => {
             const profile = client.profiles
             const isClient = client.lifecycle_status === 'client'
@@ -512,8 +612,8 @@ export function ClientsAdminManager({
               <article key={client.id} className="mobile-compact-row grid gap-4 p-4 transition hover:bg-slate-50/45 lg:grid-cols-[1.4fr_1fr_1fr_120px_260px] lg:items-center lg:p-5">
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isClient ? 'bg-[#0EA5E9]/10 text-[#1E40AF] ring-sky-500/20' : 'bg-[#14264F]/5 text-[#1E40AF] ring-violet-500/20'} ring-1`}>
-                      <UserRound className="h-5 w-5" />
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl ${isClient ? 'bg-blue-50 text-blue-600 ring-blue-100' : 'bg-slate-100 text-[#14264F] ring-slate-200'} ring-1`}>
+                      {profile?.avatar_url ? <img src={profile.avatar_url} alt={profile.full_name || 'Cliente'} className="h-full w-full object-cover" /> : <UserRound className="h-5 w-5" />}
                     </div>
                     <div className="min-w-0">
                       <h3 className="truncate text-sm font-black text-[#14264F] sm:text-base">{profile?.full_name || 'Sin nombre'}</h3>
@@ -538,11 +638,11 @@ export function ClientsAdminManager({
                   </span>
                 </div>
                 <div className="mobile-card-actions flex flex-col gap-2 sm:flex-row lg:justify-end">
-                  <button type="button" onClick={() => setMode({ type: 'detail', clientId: client.id })} className="btn-secondary py-2.5">
-                    <Eye className="mr-2 inline h-4 w-4" /> Ver
+                  <button type="button" onClick={() => setMode({ type: 'detail', clientId: client.id })} className="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-black text-[#14264F] transition hover:bg-blue-50">
+                    <Eye className="mr-2 inline h-4 w-4 text-blue-600" /> Ver
                   </button>
-                  <button type="button" onClick={() => setMode({ type: 'edit', clientId: client.id })} className="btn-secondary py-2.5">
-                    <Pencil className="mr-2 inline h-4 w-4" /> Editar
+                  <button type="button" onClick={() => setMode({ type: 'edit', clientId: client.id })} className="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-black text-[#14264F] transition hover:bg-amber-50">
+                    <Pencil className="mr-2 inline h-4 w-4 text-amber-600" /> Editar
                   </button>
                   <DeleteClientButton client={client} action={deleteAction} />
                 </div>

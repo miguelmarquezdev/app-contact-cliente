@@ -26,6 +26,7 @@ type Contact = {
   id: string
   full_name: string | null
   email: string | null
+  avatar_url?: string | null
   role: string | null
   position?: string | null
 }
@@ -45,6 +46,7 @@ type ChatMessage = {
   profiles?: {
     full_name: string | null
     role: string | null
+    avatar_url?: string | null
   } | null
 }
 
@@ -100,10 +102,62 @@ function avatarColorClass(contact?: Contact | null) {
 }
 
 function formatMessageTime(date: string) {
-  return new Date(date).toLocaleTimeString('es-PE', {
+  const messageDate = new Date(date)
+  const now = new Date()
+  const sameDay = messageDate.toDateString() === now.toDateString()
+
+  if (sameDay) {
+    return messageDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  return messageDate.toLocaleString('es-PE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+function formatChatListDate(value: number | string) {
+  const messageDate = new Date(value)
+  const now = new Date()
+
+  const today = new Date(now)
+  today.setHours(0, 0, 0, 0)
+
+  const target = new Date(messageDate)
+  target.setHours(0, 0, 0, 0)
+
+  const diffDays = Math.floor((today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) {
+    return messageDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  if (diffDays === 1) return 'Ayer'
+
+  if (diffDays > 1 && diffDays < 7) {
+    return messageDate.toLocaleDateString('es-PE', { weekday: 'long' })
+  }
+
+  return messageDate.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function ContactAvatar({ contact, size = 'md' }: { contact?: Contact | null; size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClass = size === 'lg' ? 'h-12 w-12' : size === 'sm' ? 'h-8 w-8' : 'h-11 w-11'
+  return (
+    <div className={`relative flex ${sizeClass} shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-black ring-1 ring-slate-200`}>
+      {contact?.avatar_url ? (
+        <img src={contact.avatar_url} alt={contact.full_name || contact.email || 'Usuario'} className="h-full w-full object-cover" />
+      ) : (
+        <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${avatarColorClass(contact)}`}>
+          {initials(contact)}
+        </div>
+      )}
+      {contact ? <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#22C55E]" /> : null}
+    </div>
+  )
 }
 
 function chatRoomCacheKey(currentUserId: string, targetUserId: string) {
@@ -197,6 +251,36 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   const [activityByContact, setActivityByContact] = useState<Record<string, number>>({})
   const [previewByContact, setPreviewByContact] = useState<Record<string, string>>({})
   const [online, setOnline] = useState(true)
+  const [liveContacts, setLiveContacts] = useState<Contact[]>(contacts)
+
+  useEffect(() => {
+    setLiveContacts(contacts)
+  }, [contacts])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function refreshContactProfiles() {
+      const ids = contacts.map((contact) => contact.id).filter(Boolean)
+      if (!ids.length) return
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('id,full_name,email,avatar_url,role,position')
+        .in('id', ids)
+
+      if (cancelled || !data?.length) return
+
+      const profileMap = new Map((data as Contact[]).map((profile) => [profile.id, profile]))
+      setLiveContacts((current) => current.map((contact) => ({ ...contact, ...(profileMap.get(contact.id) || {}) })))
+    }
+
+    refreshContactProfiles()
+
+    return () => {
+      cancelled = true
+    }
+  }, [contacts, supabase])
 
   useEffect(() => {
     const cached = readJsonCache<{ activityByContact?: Record<string, number>; previewByContact?: Record<string, string> }>(chatActivityCacheKey(currentUserId), {})
@@ -209,13 +293,13 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
     writeJsonCache(chatActivityCacheKey(currentUserId), { activityByContact, previewByContact })
   }, [activityByContact, currentUserId, previewByContact])
 
-  const selectedContact = contacts.find((contact) => contact.id === selectedContactId)
+  const selectedContact = liveContacts.find((contact) => contact.id === selectedContactId)
 
   useEffect(() => {
     let cancelled = false
 
     async function loadLastActivity() {
-      if (!contacts.length) return
+      if (!liveContacts.length) return
 
       const { data: rooms, error: roomsError } = await supabase
         .from('chat_rooms')
@@ -252,8 +336,8 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
         nextPreview[contactId] = item.message
       })
 
-      setActivityByContact((current) => ({ ...nextActivity, ...current }))
-      setPreviewByContact((current) => ({ ...nextPreview, ...current }))
+      setActivityByContact((current) => ({ ...current, ...nextActivity }))
+      setPreviewByContact((current) => ({ ...current, ...nextPreview }))
     }
 
     loadLastActivity()
@@ -261,11 +345,11 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
     return () => {
       cancelled = true
     }
-  }, [contacts.length, currentUserId, supabase])
+  }, [liveContacts.length, currentUserId, supabase])
 
   useEffect(() => {
-    contactsRef.current = contacts
-  }, [contacts])
+    contactsRef.current = liveContacts
+  }, [liveContacts])
 
   useEffect(() => {
     selectedContactIdRef.current = selectedContactId
@@ -351,8 +435,8 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
   const filteredContacts = useMemo(() => {
     const term = search.trim().toLowerCase()
     const list = !term
-      ? contacts
-      : contacts.filter((contact) => {
+      ? liveContacts
+      : liveContacts.filter((contact) => {
           const fullName = contact.full_name?.toLowerCase() || ''
           const email = contact.email?.toLowerCase() || ''
           const role = roleLabel(contact.role).toLowerCase()
@@ -371,20 +455,20 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
 
       return (a.full_name || a.email || '').localeCompare(b.full_name || b.email || '')
     })
-  }, [activityByContact, contacts, search, unreadByContact])
+  }, [activityByContact, liveContacts, search, unreadByContact])
 
   useEffect(() => {
     const targetFromUrl = new URLSearchParams(window.location.search).get('contact')
-    if (targetFromUrl && contacts.some((contact) => contact.id === targetFromUrl)) {
+    if (targetFromUrl && liveContacts.some((contact) => contact.id === targetFromUrl)) {
       setSelectedContactId(targetFromUrl)
       setMobileConversationOpen(true)
       return
     }
 
-    if (contacts[0]?.id && !selectedContactId && typeof window !== 'undefined' && window.innerWidth >= 768) {
-      setSelectedContactId(contacts[0].id)
+    if (liveContacts[0]?.id && !selectedContactId && typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setSelectedContactId(liveContacts[0].id)
     }
-  }, [contacts, selectedContactId])
+  }, [liveContacts, selectedContactId])
 
   const scrollBottom = useCallback((smooth = true) => {
     const behavior: ScrollBehavior = smooth ? 'smooth' : 'auto'
@@ -415,7 +499,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
 
     const { data, error } = await supabase
       .from('chat_messages')
-      .select('id, chat_room_id, sender_id, message, file_url, file_name, file_type, file_size, link_url, is_read, created_at, profiles(full_name, role)')
+      .select('id, chat_room_id, sender_id, message, file_url, file_name, file_type, file_size, link_url, is_read, created_at, profiles(full_name, role, avatar_url)')
       .eq('chat_room_id', targetRoomId)
       .order('created_at', { ascending: true })
 
@@ -543,10 +627,13 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
           if (!sender && incoming.sender_id) {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('full_name,email')
+              .select('id,full_name,email,avatar_url,role,position')
               .eq('id', incoming.sender_id)
               .maybeSingle()
             senderName = profile?.full_name || profile?.email || senderName
+            if (profile?.id) {
+              setLiveContacts((current) => current.some((contact) => contact.id === profile.id) ? current.map((contact) => contact.id === profile.id ? { ...contact, ...(profile as Contact) } : contact) : current)
+            }
           }
 
           if (incoming.sender_id) {
@@ -662,7 +749,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
         file_size: uploadedFile?.size || null,
         link_url: linkUrl || null,
         created_at: new Date().toISOString(),
-        profiles: { full_name: currentUserName, role: null }
+        profiles: { full_name: currentUserName, role: null, avatar_url: null }
       }
 
       setMessages((current) => [...current, optimistic])
@@ -789,14 +876,11 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
                 isActive ? 'border-[#14264F] bg-[#14264F]/5' : 'border-transparent hover:bg-slate-50'
               }`}
             >
-              <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-base font-black ring-1 ring-slate-200 md:h-11 md:w-11 ${avatarColorClass(contact)}`}>
-                {initials(contact)}
-                <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#0EA5E9]" />
-              </div>
+              <ContactAvatar contact={contact} />
               <div className="min-w-0 flex-1 pb-2.5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="truncate text-[15px] font-black text-[#14264F] md:text-sm">{contact.full_name || contact.email}</p>
-                  <span className={`shrink-0 text-[11px] font-bold ${unread ? 'text-[#0EA5E9]' : 'text-slate-500'}`}>{activityByContact[contact.id] ? new Date(activityByContact[contact.id]).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : roleLabel(contact.role)}</span>
+                  <span className={`shrink-0 text-[11px] font-bold ${unread ? 'text-[#0EA5E9]' : 'text-slate-500'}`}>{activityByContact[contact.id] ? formatChatListDate(activityByContact[contact.id]) : roleLabel(contact.role)}</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between gap-3">
                   <p className="truncate text-[12px] font-semibold text-slate-500 md:text-xs">
@@ -829,10 +913,7 @@ export function RealtimeChat({ currentUserId, currentUserName, contacts, title =
           <ArrowLeft className="h-5 w-5" />
         </button>
 
-        <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-base font-black ring-1 ring-slate-200 md:h-12 md:w-12 ${selectedContact ? avatarColorClass(selectedContact) : 'from-[#14264F] to-[#1E40AF] text-white'}`}>
-          {selectedContact ? initials(selectedContact) : <Users className="h-5 w-5" />}
-          {selectedContact ? <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#0EA5E9]" /> : null}
-        </div>
+        {selectedContact ? <ContactAvatar contact={selectedContact} size="lg" /> : <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#14264F] text-white"><Users className="h-5 w-5" /></div>}
 
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-base font-black text-[#14264F] md:text-lg">

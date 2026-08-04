@@ -50,6 +50,7 @@ type Itinerary = {
   id: string
   title: string
   description: string | null
+  image_url?: string | null
   itinerary_days: Day[] | null
 }
 
@@ -71,7 +72,7 @@ export default async function EditItineraryPage({ params, searchParams }: PagePr
   const supabase = await createClient()
   const { data: itinerary } = await supabase
     .from('itineraries')
-    .select('id,title,description,itinerary_days(day_number,title,route,tour_template_id,food,food_type,food_description,hotel,hotel_id,description,itinerary_stops(place,title,duration,description,includes_ticket,order_index),itinerary_day_documents(title,file_url,file_path,file_type),itinerary_day_collaborators(collaborator_id))')
+    .select('id,title,description,image_url,itinerary_days(day_number,title,route,tour_template_id,food,food_type,food_description,hotel,hotel_id,description,itinerary_stops(place,title,duration,description,includes_ticket,order_index),itinerary_day_documents(title,file_url,file_path,file_type),itinerary_day_collaborators(collaborator_id))')
     .eq('id', id)
     .single<Itinerary>()
 
@@ -155,6 +156,7 @@ export default async function EditItineraryPage({ params, searchParams }: PagePr
           id: itinerary.id,
           title: itinerary.title,
           description: itinerary.description,
+          image_url: itinerary.image_url,
           days,
         }}
       />

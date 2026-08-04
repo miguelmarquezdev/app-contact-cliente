@@ -36,17 +36,21 @@ export async function Sidebar({ hideMobileNav = false, hideMobileHeader = false 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = await supabase.from('profiles').select('role,full_name,email').eq('id', user?.id).single()
+  const { data: clientRecord } = profile?.role === 'client'
+    ? await supabase.from('clients').select('lifecycle_status').eq('profile_id', user?.id).single()
+    : { data: null }
   const role = profile?.role
   const isClient = role === 'client'
   const isCollaborator = role === 'collaborator' || role === 'tour_leader'
-  const items = isClient ? clientItems : isCollaborator ? collaboratorItems : adminItems
+  const isOperationalClient = !isClient || clientRecord?.lifecycle_status === 'client'
+  const items = isClient ? (isOperationalClient ? clientItems : clientItems.filter((item) => item.href !== '/client/chat')) : isCollaborator ? collaboratorItems : adminItems
   const portalLabel = isClient ? 'Portal cliente' : isCollaborator ? 'Panel equipo' : 'Tour CRM'
 
   return (
     <>
       {!hideMobileNav && !hideMobileHeader ? <MobileAppHeader role={role} /> : null}
 
-      <aside className="hidden min-h-screen w-72 border-r border-slate-200 bg-white p-5 shadow-[10px_0_30px_rgba(15,23,42,.04)] lg:flex lg:flex-col">
+      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-slate-200 bg-white p-5 shadow-[10px_0_30px_rgba(15,23,42,.04)] lg:flex lg:flex-col">
         <div className="mb-7 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <SunbeamLogo />
           <p className="mt-4 text-[11px] font-black uppercase tracking-[.18em] text-[#1E40AF]">{portalLabel}</p>
@@ -70,7 +74,7 @@ export async function Sidebar({ hideMobileNav = false, hideMobileHeader = false 
         </div>
       </aside>
 
-      {!hideMobileNav ? <MobileBottomNav role={role} /> : null}
+      {!hideMobileNav ? <MobileBottomNav role={role} isOperationalClient={isOperationalClient} /> : null}
     </>
   )
 }

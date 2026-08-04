@@ -8,6 +8,7 @@ type CollaboratorItem = {
   full_name: string | null
   email: string | null
   phone: string | null
+  avatar_url?: string | null
   role: string | null
   position: string | null
   status: string | null
@@ -56,7 +57,7 @@ function DeleteCollaboratorButton({ user, action }: { user: CollaboratorItem; ac
       }}
     >
       <input type="hidden" name="profile_id" value={user.id} />
-      <button className="btn-danger w-full py-2.5 sm:w-auto" title="Eliminar colaborador">
+      <button className="inline-flex w-full items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-black text-red-600 transition hover:bg-red-50 sm:w-auto" title="Eliminar colaborador">
         <Trash2 className="mr-2 inline h-4 w-4" /> Eliminar
       </button>
     </form>
@@ -162,13 +163,13 @@ export function CollaboratorsAdminManager({
 
         <section className="card overflow-hidden mobile-compact-list">
           <div className="border-b border-slate-200 bg-gradient-to-r from-emerald-500/10 via-[#0b1220] to-sky-500/10 p-6">
-            <p className="badge-brand inline-flex">Perfil del equipo</p>
+            <div className="flex items-center gap-4"><div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">{selectedUser.avatar_url ? <img src={selectedUser.avatar_url} alt={selectedUser.full_name || 'Colaborador'} className="h-full w-full object-cover" /> : <BriefcaseBusiness className="h-7 w-7" />}</div><p className="badge-brand inline-flex">Perfil del equipo</p></div>
             <h2 className="mt-3 text-3xl font-black text-[#14264F]">{selectedUser.full_name || 'Colaborador sin nombre'}</h2>
             <p className="mt-2 text-sm text-slate-500">Acceso creado desde {formatDate(selectedUser.created_at)}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <span className="rounded-full bg-[#0EA5E9]/10 px-3 py-1 text-xs font-black text-[#1E40AF] ring-1 ring-sky-500/20">{roleLabel(selectedUser.role)}</span>
               <span className="rounded-full bg-[#14264F]/5 px-3 py-1 text-xs font-black text-[#1E40AF] ring-1 ring-violet-500/20">{positionLabel(selectedUser.position)}</span>
-              <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${selectedUser.status === 'inactive' ? 'bg-red-500/10 text-red-300 ring-red-500/20' : 'bg-[#14264F]/10 text-[#0EA5E9] ring-emerald-500/20'}`}>{statusLabel(selectedUser.status)}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${selectedUser.status === 'inactive' ? 'bg-[#E5E7EB] text-[#6B7280] hover:bg-[#D1D5DB] ring-transparent' : 'bg-[#22C55E] text-white hover:bg-[#16A34A] ring-transparent'}`}>{statusLabel(selectedUser.status)}</span>
             </div>
           </div>
 
@@ -278,13 +279,13 @@ export function CollaboratorsAdminManager({
           </div>
         ) : null}
 
-        <div className="divide-y divide-[#1e293b]">
+        <div className="divide-y divide-slate-100">
           {filteredCollaborators.map((user) => (
             <article key={user.id} className="mobile-compact-row grid gap-4 p-5 transition hover:bg-slate-50/45 lg:grid-cols-[1.35fr_1fr_130px_140px_110px_250px] lg:items-center">
               <div className="min-w-0">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0EA5E9]/10 text-[#1E40AF] ring-1 ring-sky-500/20">
-                    <BriefcaseBusiness className="h-5 w-5" />
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                    {user.avatar_url ? <img src={user.avatar_url} alt={user.full_name || 'Colaborador'} className="h-full w-full object-cover" /> : <BriefcaseBusiness className="h-5 w-5" />}
                   </div>
                   <div className="min-w-0">
                     <h3 className="truncate text-base font-black text-[#14264F]">{user.full_name || 'Colaborador sin nombre'}</h3>
@@ -307,16 +308,16 @@ export function CollaboratorsAdminManager({
                 </span>
               </div>
               <div className="mobile-list-status">
-                <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${user.status === 'inactive' ? 'bg-red-500/10 text-red-300 ring-red-500/20' : 'bg-[#14264F]/10 text-[#0EA5E9] ring-emerald-500/20'}`}>
+                <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${user.status === 'inactive' ? 'bg-[#E5E7EB] text-[#6B7280] hover:bg-[#D1D5DB] ring-transparent' : 'bg-[#22C55E] text-white hover:bg-[#16A34A] ring-transparent'}`}>
                   {statusLabel(user.status)}
                 </span>
               </div>
               <div className="mobile-card-actions flex flex-col gap-2 sm:flex-row lg:justify-end">
-                <button type="button" onClick={() => setMode({ type: 'detail', userId: user.id })} className="btn-secondary py-2.5">
-                  <Eye className="mr-2 inline h-4 w-4" /> Ver
+                <button type="button" onClick={() => setMode({ type: 'detail', userId: user.id })} className="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-black text-[#14264F] transition hover:bg-blue-50">
+                  <Eye className="mr-2 inline h-4 w-4 text-blue-600" /> Ver
                 </button>
-                <button type="button" onClick={() => setMode({ type: 'edit', userId: user.id })} className="btn-secondary py-2.5">
-                  <Pencil className="mr-2 inline h-4 w-4" /> Editar
+                <button type="button" onClick={() => setMode({ type: 'edit', userId: user.id })} className="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-black text-[#14264F] transition hover:bg-amber-50">
+                  <Pencil className="mr-2 inline h-4 w-4 text-amber-600" /> Editar
                 </button>
                 <DeleteCollaboratorButton user={user} action={deleteAction} />
               </div>

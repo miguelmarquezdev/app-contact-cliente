@@ -52,7 +52,8 @@ export default async function ClientDashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user?.id).single()
-  const { data: client } = await supabase.from('clients').select('id,country,passport_number,lifecycle_status,proposal_status,payment_status,payment_amount,payment_currency').eq('profile_id', user?.id).single()
+  const { data: client } = await supabase.from('clients').select('id,country,passport_number,lifecycle_status,proposal_status,payment_status,payment_amount,payment_currency,reservation_policy_accepted').eq('profile_id', user?.id).single()
+  const isOperationalClient = client?.lifecycle_status === 'client'
 
   const { count: assignedCount } = client?.id
     ? await supabase.from('client_itineraries').select('*', { count: 'exact', head: true }).eq('client_id', client.id)
@@ -176,13 +177,24 @@ export default async function ClientDashboardPage() {
       <div className="mt-4 grid gap-3 md:grid-cols-3 lg:mt-0">
         <StatCard title="Itinerarios" value={String(assignedCount ?? 0)} helper="Propuestas recibidas" />
         <StatCard title="Estado" value={client?.lifecycle_status === 'client' ? 'Cliente' : 'Prospecto'} helper={client?.proposal_status || 'Propuesta pendiente'} />
-        <Link href="/client/chat" className="card flex items-center justify-between p-4 hover:ring-2 hover:ring-[#1E40AF]/20 lg:p-6">
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest text-[#1E40AF]">Chat</p>
-            <h2 className="mt-1 text-base font-black text-[#14264F] lg:text-xl">Hablar con el equipo</h2>
+        {isOperationalClient ? (
+          <Link href="/client/chat" className="card flex items-center justify-between p-4 hover:ring-2 hover:ring-[#1E40AF]/20 lg:p-6">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-[#1E40AF]">Chat</p>
+              <h2 className="mt-1 text-base font-black text-[#14264F] lg:text-xl">Hablar con el equipo</h2>
+            </div>
+            <MessageCircle className="h-6 w-6 text-[#1E40AF]" />
+          </Link>
+        ) : (
+          <div className="card flex items-center justify-between p-4 lg:p-6">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400">Chat bloqueado</p>
+              <h2 className="mt-1 text-base font-black text-[#14264F] lg:text-xl">Disponible al confirmar</h2>
+              <p className="mt-1 text-xs text-slate-500">Se activa cuando seas cliente confirmado.</p>
+            </div>
+            <MessageCircle className="h-6 w-6 text-slate-300" />
           </div>
-          <MessageCircle className="h-6 w-6 text-[#1E40AF]" />
-        </Link>
+        )}
       </div>
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">

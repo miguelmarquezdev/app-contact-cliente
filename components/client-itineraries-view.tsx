@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, CalendarDays, CheckCircle2, FileText, MessageCircle, Route, XCircle } from 'lucide-react'
+import { ArrowLeft, Bell, CalendarDays, CheckCircle2, MessageCircle, Route, XCircle } from 'lucide-react'
 import { ItineraryDaysTabs, type ItineraryTabDay } from '@/components/itinerary-days-tabs'
 
 type Assignment = {
@@ -19,6 +19,7 @@ type Assignment = {
     id: string
     title: string
     description: string | null
+    image_url?: string | null
     itinerary_days: ItineraryTabDay[] | null
   } | null
 }
@@ -62,6 +63,22 @@ function StatusChip({ status }: { status?: string | null }) {
 export function ClientItinerariesView({ assignments, acceptAction, rejectAction, changesAction }: { assignments: Assignment[]; acceptAction: ActionFn; rejectAction: ActionFn; changesAction: ActionFn }) {
   const [activeAssignmentId, setActiveAssignmentId] = useState<string | null>(null)
   const [savedAssignments, setSavedAssignments] = useState<Assignment[]>(assignments)
+  const [reviewedAssignments, setReviewedAssignments] = useState<string[]>([])
+
+  useEffect(() => {
+    try {
+      setReviewedAssignments(JSON.parse(localStorage.getItem('happy-manager-reviewed-client-itineraries') || '[]'))
+    } catch {
+      setReviewedAssignments([])
+    }
+  }, [])
+
+  const openAssignment = (assignment: Assignment) => {
+    const next = Array.from(new Set([...reviewedAssignments, assignment.id]))
+    setReviewedAssignments(next)
+    localStorage.setItem('happy-manager-reviewed-client-itineraries', JSON.stringify(next))
+    setActiveAssignmentId(assignment.id)
+  }
 
   useEffect(() => {
     if (assignments.length) {
@@ -208,61 +225,40 @@ export function ClientItinerariesView({ assignments, acceptAction, rejectAction,
     <div className="divide-y divide-slate-100 rounded-2xl bg-white shadow-sm sm:grid sm:grid-cols-2 sm:gap-3 sm:divide-y-0 sm:bg-transparent sm:shadow-none xl:grid-cols-3">
       {visibleAssignments.map((assignment) => {
         const itinerary = assignment.itineraries
-        const days = [...(itinerary?.itinerary_days || [])].sort((a, b) => a.day_number - b.day_number)
-        const stopCount = countStops(days)
-        const documentCount = countDocuments(days)
+        const hasUpdate = !reviewedAssignments.includes(assignment.id) && (assignment.proposal_status === 'sent' || assignment.proposal_status === 'changes_requested' || Boolean(assignment.requested_changes))
 
         return (
           <article key={assignment.id} className="bg-white px-3.5 py-3.5 transition active:bg-slate-50 sm:rounded-2xl sm:p-4 sm:shadow-sm">
-            <div className="flex items-start justify-between gap-3">
+            <button type="button" onClick={() => openAssignment(assignment)} className="flex w-full items-center gap-3 text-left">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
+                {itinerary?.image_url ? (
+                  <img src={itinerary.image_url} alt={itinerary.title || 'Itinerario'} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#14264F] to-[#1E40AF] text-white">
+                    <Route className="h-6 w-6 opacity-80" />
+                  </div>
+                )}
+                {hasUpdate ? (
+                  <span className="absolute right-1 top-1 flex h-6 w-6 animate-bell-swing items-center justify-center rounded-full bg-amber-400 text-white shadow-lg">
+                    <Bell className="h-3 w-3" />
+                  </span>
+                ) : null}
+              </div>
+
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="mb-1 flex flex-wrap items-center gap-1.5">
                   <StatusChip status={assignment.proposal_status} />
                   <span className="rounded-full bg-[#1E40AF]/8 px-2 py-0.5 text-[10px] font-bold text-[#1E40AF]">V{assignment.version_number || 1}</span>
                 </div>
-
-                <h2 className="mt-2 line-clamp-1 text-[1rem] font-extrabold leading-tight text-[#14264F] sm:text-lg">{itinerary?.title || 'Itinerario'}</h2>
-                {itinerary?.description ? <p className="mt-1 line-clamp-1 text-[12px] font-medium leading-5 text-slate-500">{itinerary.description}</p> : null}
+                <h2 className="line-clamp-1 text-[1rem] font-extrabold leading-tight text-[#14264F] sm:text-lg">{itinerary?.title || 'Itinerario'}</h2>
+                <p className="mt-1 truncate text-[11px] font-semibold text-slate-400">Enviado: {formatDate(assignment.sent_at || assignment.created_at)}</p>
+                {assignment.requested_changes ? <p className="mt-1 line-clamp-1 text-[11px] font-semibold text-amber-700">Tus cambios: {assignment.requested_changes}</p> : null}
               </div>
 
-              <button
-                type="button"
-                onClick={() => setActiveAssignmentId(assignment.id)}
-                className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#14264F] text-white shadow-sm active:scale-95"
-                aria-label="Ver itinerario"
-              >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#14264F] text-white shadow-sm">
                 →
-              </button>
-            </div>
-
-            <div className="mt-3 grid grid-cols-3 gap-1.5 text-center">
-              <div className="rounded-xl bg-slate-50 px-2 py-2">
-                <CalendarDays className="mx-auto mb-0.5 h-3.5 w-3.5 text-[#1E40AF]" />
-                <p className="text-sm font-extrabold leading-none text-[#14264F]">{days.length}</p>
-                <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-slate-400">Días</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 px-2 py-2">
-                <Route className="mx-auto mb-0.5 h-3.5 w-3.5 text-[#1E40AF]" />
-                <p className="text-sm font-extrabold leading-none text-[#14264F]">{stopCount}</p>
-                <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-slate-400">Stops</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 px-2 py-2">
-                <FileText className="mx-auto mb-0.5 h-3.5 w-3.5 text-[#1E40AF]" />
-                <p className="text-sm font-extrabold leading-none text-[#14264F]">{documentCount}</p>
-                <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-slate-400">Docs</p>
-              </div>
-            </div>
-
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <p className="min-w-0 truncate text-[11px] font-semibold text-slate-400">Enviado: {formatDate(assignment.sent_at || assignment.created_at)}</p>
-              <button type="button" onClick={() => setActiveAssignmentId(assignment.id)} className="hidden rounded-full bg-[#14264F] px-4 py-2 text-xs font-bold text-white sm:block">
-                Ver
-              </button>
-            </div>
-
-            {assignment.note ? <p className="mt-2 line-clamp-2 rounded-xl bg-slate-50 px-3 py-2 text-[11px] font-medium leading-5 text-slate-600">Mensaje: {assignment.note}</p> : null}
-            {assignment.requested_changes ? <p className="mt-2 line-clamp-2 rounded-xl bg-amber-50 px-3 py-2 text-[11px] font-semibold leading-5 text-amber-700">Tus cambios: {assignment.requested_changes}</p> : null}
-            {assignment.proposal_status === 'version_replaced' ? <p className="mt-2 rounded-xl bg-slate-100 px-3 py-2 text-[11px] font-semibold text-slate-500">Versión reemplazada.</p> : null}
+              </span>
+            </button>
           </article>
         )
       })}

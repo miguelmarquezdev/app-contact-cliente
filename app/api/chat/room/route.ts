@@ -20,6 +20,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No puedes crear un chat contigo mismo' }, { status: 400 })
   }
 
+  const { data: targetProfile, error: targetError } = await supabase
+    .from('profiles')
+    .select('id,role,status')
+    .eq('id', targetUserId)
+    .maybeSingle()
+
+  if (targetError || !targetProfile || targetProfile.status !== 'active') {
+    return NextResponse.json({ error: 'Contacto no disponible' }, { status: 404 })
+  }
+
+  if (targetProfile.role === 'client') {
+    const { data: targetClient } = await supabase
+      .from('clients')
+      .select('lifecycle_status')
+      .eq('profile_id', targetUserId)
+      .maybeSingle()
+
+    if (targetClient?.lifecycle_status !== 'client') {
+      return NextResponse.json({ error: 'El chat operativo solo está disponible para clientes confirmados' }, { status: 403 })
+    }
+  }
+
   const [directUserA, directUserB] = [user.id, targetUserId].sort()
 
   const { data: existingRoom, error: findError } = await supabase

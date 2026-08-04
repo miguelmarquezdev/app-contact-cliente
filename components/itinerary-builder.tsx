@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { useFormStatus } from 'react-dom'
+import { Image as ImageIcon, Loader2, Plus, Trash2 } from 'lucide-react'
 
 export type ExistingDayDocument = {
   title: string
@@ -98,10 +99,22 @@ export type ItineraryBuilderData = {
   id?: string
   title?: string | null
   description?: string | null
+  image_url?: string | null
   days?: DayForm[]
 }
 
 const foodTypes = ['Desayuno', 'Almuerzo', 'Cena']
+
+function SaveItineraryButton({ label }: { label: string }) {
+  const { pending } = useFormStatus()
+  return (
+    <button className="btn-primary min-w-[190px]" disabled={pending}>
+      {pending ? (
+        <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Guardando...</span>
+      ) : label}
+    </button>
+  )
+}
 
 export function ItineraryBuilder({
   action,
@@ -111,6 +124,7 @@ export function ItineraryBuilder({
   hotels = [],
   submitLabel = 'Guardar itinerario completo',
   hiddenFields = {},
+  simpleCreate = false,
 }: {
   action: (formData: FormData) => void | Promise<void>
   initialData?: ItineraryBuilderData
@@ -119,6 +133,7 @@ export function ItineraryBuilder({
   hotels?: HotelOption[]
   submitLabel?: string
   hiddenFields?: Record<string, string>
+  simpleCreate?: boolean
 }) {
   const normalizedInitialDays = useMemo(() => {
     const source = initialData?.days?.length ? initialData.days : [emptyDay()]
@@ -133,6 +148,7 @@ export function ItineraryBuilder({
   }, [initialData?.days])
 
   const [days, setDays] = useState<DayForm[]>(normalizedInitialDays)
+  const [imagePreview, setImagePreview] = useState(initialData?.image_url || '')
 
   const updateDay = (dayIndex: number, field: keyof Omit<DayForm, 'stops' | 'collaborator_ids' | 'existing_documents'>, value: string) => {
     setDays((current) => current.map((day, index) => index === dayIndex ? { ...day, [field]: value } : day))
@@ -215,20 +231,53 @@ export function ItineraryBuilder({
       {initialData?.id ? <input type="hidden" name="itinerary_id" value={initialData.id} /> : null}
       {Object.entries(hiddenFields).map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
       <div className="border-b border-slate-200 p-5 sm:p-6">
-        <p className="text-xs font-black uppercase tracking-widest text-[#0EA5E9]">Constructor completo</p>
-        <h2 className="mt-1 text-2xl font-black text-[#14264F]">Crear itinerario completo</h2>
-        <p className="mt-2 max-w-3xl text-sm text-slate-500">Selecciona tours base para autollenar ruta, descripción y stops; luego ajusta comida, hotel, documentos y equipo por día.</p>
+        <p className="text-xs font-black uppercase tracking-widest text-[#0EA5E9]">{simpleCreate ? "Creación rápida" : "Constructor completo"}</p>
+        <h2 className="mt-1 text-2xl font-black text-[#14264F]">{simpleCreate ? "Crear itinerario base" : "Crear itinerario completo"}</h2>
+        <p className="mt-2 max-w-3xl text-sm text-slate-500">{simpleCreate ? 'Crea la estructura base del itinerario. Luego podrás editarlo para agregar documentos y equipo operativo.' : 'Selecciona tours base para autollenar ruta, descripción y stops; luego ajusta comida, hotel, documentos y equipo por día.'}</p>
+        {simpleCreate ? (
+          <div className="mt-3 rounded-2xl bg-sky-50 px-4 py-3 text-xs font-bold leading-5 text-[#1E40AF]">
+            Colaboradores, documentos y equipo se agregan después desde Editar, no durante la creación inicial.
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-6 p-5 sm:p-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">Nombre del itinerario o paquete</label>
-            <input name="title" defaultValue={initialData?.title || ''} className="input" placeholder="Ejemplo: Paquete Cusco 5 días" required />
+        <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+          <div className="rounded-2xl bg-slate-50 p-3">
+            <div className="relative overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview itinerario" className="h-36 w-full object-cover" />
+              ) : (
+                <div className="flex h-36 w-full items-center justify-center bg-slate-100 text-slate-400">
+                  <ImageIcon className="h-8 w-8" />
+                </div>
+              )}
+            </div>
+            <input type="hidden" name="existing_image_url" value={initialData?.image_url || ''} />
+            <label className="mt-3 block cursor-pointer rounded-xl bg-white px-3 py-2 text-center text-xs font-black text-[#14264F] shadow-sm ring-1 ring-slate-100">
+              Subir imagen
+              <input
+                name="itinerary_image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (file) setImagePreview(URL.createObjectURL(file))
+                }}
+              />
+            </label>
+            <p className="mt-2 text-[11px] font-semibold leading-4 text-slate-500">JPG, PNG o WebP. Se verá en la lista de itinerarios.</p>
           </div>
-          <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">Descripción general opcional</label>
-            <input name="description" defaultValue={initialData?.description || ''} className="input" placeholder="Ejemplo: Itinerario para cliente privado" />
+          <div className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-bold text-slate-700">Nombre del itinerario o paquete</label>
+              <input name="title" defaultValue={initialData?.title || ''} className="input" placeholder="Ejemplo: Paquete Cusco 5 días" required />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-slate-700">Descripción general opcional</label>
+              <input name="description" defaultValue={initialData?.description || ''} className="input" placeholder="Ejemplo: Itinerario para cliente privado" />
+            </div>
           </div>
         </div>
 
@@ -291,6 +340,8 @@ export function ItineraryBuilder({
                   <textarea value={day.description} onChange={(e) => updateDay(dayIndex, 'description', e.target.value)} className="input min-h-24" placeholder="Si seleccionas un tour base, aquí se jala su descripción. También puedes editarla." />
                 </div>
 
+{!simpleCreate ? (
+              <>
                 <div className="md:col-span-2">
                   <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -324,6 +375,9 @@ export function ItineraryBuilder({
                   <p className="mt-2 text-xs font-semibold text-slate-500">Formatos permitidos: PDF, JPG, PNG o WEBP. Máximo recomendado: 10 MB por archivo.</p>
                   {day.existing_documents.length ? <div className="mt-3 flex flex-wrap gap-2">{day.existing_documents.map((doc, index) => <a key={`${doc.file_url}-${index}`} href={doc.file_url} target="_blank" className="rounded-full bg-white px-3 py-2 text-xs font-bold text-slate-700 ring-1 ring-slate-200">📎 {doc.title}</a>)}</div> : null}
                 </div>
+
+              </>
+              ) : null}
               </div>
 
               <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4">
@@ -354,7 +408,7 @@ export function ItineraryBuilder({
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button type="button" onClick={addDay} className="btn-secondary"><Plus className="mr-2 inline h-4 w-4" /> Agregar otro día</button>
-          <button className="btn-primary">{submitLabel}</button>
+          <SaveItineraryButton label={submitLabel} />
         </div>
       </div>
     </form>

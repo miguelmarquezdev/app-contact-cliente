@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ClipboardList, LayoutDashboard, MessageCircle, Route, User, Users } from 'lucide-react'
 
-type MobileBottomNavProps = { role?: string | null }
+type MobileBottomNavProps = { role?: string | null; isOperationalClient?: boolean }
 
 const adminItems = [
   { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
@@ -31,9 +31,9 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-export function MobileBottomNav({ role }: MobileBottomNavProps) {
+export function MobileBottomNav({ role, isOperationalClient = true }: MobileBottomNavProps) {
   const pathname = usePathname()
-  const items = role === 'client' ? clientItems : role === 'collaborator' || role === 'tour_leader' ? collaboratorItems : adminItems
+  const items = role === 'client' ? (isOperationalClient ? clientItems : clientItems.filter((item) => item.href !== '/client/chat')) : role === 'collaborator' || role === 'tour_leader' ? collaboratorItems : adminItems
 
   return (
     <div className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/96 px-2 pb-[calc(.38rem+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-8px_24px_rgba(15,23,42,.07)] backdrop-blur-xl lg:hidden">

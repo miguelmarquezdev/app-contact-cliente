@@ -92,5 +92,10 @@ export async function updateClientProfile(formData: FormData) {
   }
 
   revalidatePath('/client/profile')
+  revalidatePath('/client/dashboard')
+  revalidatePath('/client/chat')
+  revalidatePath('/chat')
+  revalidatePath('/clients')
+  revalidatePath('/collaborators')
   redirect('/client/profile?success=Datos actualizados')
 }
